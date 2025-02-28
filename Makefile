@@ -1,4 +1,4 @@
-.PHONY: install test lint format clean setup pre-commit run-ui debug-cleanup
+.PHONY: install test lint format clean setup pre-commit run-ui debug-cleanup docs docs-check
 
 # Project settings
 PROJECT_NAME = research_agent
@@ -7,6 +7,7 @@ PYTEST = pipenv run pytest
 PYTEST_FLAGS = -v
 SOURCE_DIR = src
 TESTS_DIR = tests
+DOCS_DIR = docs
 
 # Install dependencies
 install:
@@ -68,8 +69,21 @@ pre-commit:
 run-ui:
 	$(PYTHON) -m src.main ui
 
+# Documentation targets
+docs:
+	@echo "Checking for documentation updates..."
+	@test -d $(DOCS_DIR) || mkdir -p $(DOCS_DIR)
+	@test -d $(DOCS_DIR)/images || mkdir -p $(DOCS_DIR)/images
+
+# Check for documentation issues
+docs-check:
+	@echo "Checking documentation files..."
+	@find $(DOCS_DIR) -name "*.md" -exec grep -l "TODO" {} \; | xargs -r echo "TODO items found in:"
+	@find $(DOCS_DIR) -name "*.md" -exec grep -l "(Coming Soon)" {} \; | xargs -r echo "Coming Soon items found in:"
+	@find $(DOCS_DIR) -name "*.md" -exec grep -l "FIXME" {} \; | xargs -r echo "FIXME items found in:"
+
 # Run all quality checks
-quality: format lint security test debug-cleanup
+quality: format lint security test debug-cleanup docs-check
 
 # Setup development environment
 setup: install-dev pre-commit
