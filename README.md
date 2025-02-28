@@ -1,6 +1,6 @@
-# Pydantic Graph Hello World Example
+# Research Agent
 
-This project demonstrates how to use the `pydantic-graph` library to create a graph workflow that prints "Hello World!".
+This project demonstrates how to use the `pydantic-graph` library to create a research agent, building on a "Hello World" example.
 
 ## Project Structure
 
@@ -26,6 +26,45 @@ src/
 │       └── web/             # (Future) FastAPI web API
 └── main.py                  # Main entry point
 ```
+
+## Code Quality
+
+This project follows strict code quality guidelines based on the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html). We use the following tools to maintain code quality:
+
+### Static Analysis Tools
+
+- **Black**: Enforces a consistent code style
+- **isort**: Organizes imports according to best practices
+- **Flake8**: Checks for style guide enforcement and common errors
+- **Pylint**: Performs deeper static analysis
+- **Mypy**: Provides static type checking
+- **Bandit**: Scans for security vulnerabilities
+
+### Setup and Usage
+
+We use `pre-commit` hooks to run these tools automatically before each commit. To set up the development environment with all code quality tools:
+
+```bash
+# Install all development dependencies
+make setup
+
+# Run all quality checks manually
+make quality
+
+# Run individual checks
+make format     # Format code with black and isort
+make lint       # Run all linters
+make security   # Run security checks
+```
+
+### Error Handling
+
+This project follows consistent error handling practices:
+
+1. All functions have clear type annotations and docstrings
+2. Exceptions are caught at appropriate levels and contextualized
+3. Logging is used for debugging and tracing
+4. Custom exceptions are used for domain-specific errors
 
 ## Overview
 

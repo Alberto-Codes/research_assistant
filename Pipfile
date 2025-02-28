@@ -7,13 +7,17 @@ name = "pypi"
 pydantic-ai = "*"
 pydantic-graph = "*"
 streamlit = "*"
-hello-pydantic-graph = {file = ".", editable = true}
+research_agent = {file = ".", editable = true}
 
 [dev-packages]
 black = "*"
 isort = "*"
 pytest = "*"
 pytest-asyncio = "*"
+pylint = "*"
+flake8 = "*"
+bandit = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.13"

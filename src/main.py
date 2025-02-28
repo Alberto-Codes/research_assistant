@@ -6,11 +6,18 @@ providing command-line argument parsing and dispatching to the
 appropriate interface (CLI or Streamlit).
 """
 
+# Standard library imports
 import argparse
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 from typing import List, Optional
+
+# Import third-party libraries
+# No third-party imports directly in main.py
+
+# Import local modules
+# Will be imported in functions to avoid circular imports
 
 
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:

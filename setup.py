@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="hello-pydantic-graph",
+    name="research_agent",
     version="0.1.0",
-    description="A simple Hello World example using pydantic-graph",
+    description="A simple research agent using pydantic-graph",
     author="Alberto-Codes",
     author_email="94092485+Alberto-Codes@users.noreply.github.com",
     packages=find_packages(where="src"),
@@ -33,7 +33,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "hello-graph=main:main",
+            "research_agent=main:main",
         ],
     },
 ) 

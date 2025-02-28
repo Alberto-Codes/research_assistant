@@ -8,17 +8,22 @@ a specific operation in the graph workflow.
 
 from __future__ import annotations
 from dataclasses import dataclass
+import logging
 import time
 import functools
-from typing import Any, TypeVar, Callable, cast
+from typing import Any, TypeVar, Callable, cast, Optional
 import asyncio
 
-from pydantic_graph import BaseNode, End, GraphRunContext
+from pydantic_graph import BaseNode, End, GraphRunContext, NodeError
 
 from hello_world.core.state import MyState
 from hello_world.core.dependencies import HelloWorldDependencies
 
 
+# Set up logging
+logger = logging.getLogger(__name__)
+
+# Type variable for the decorator
 T = TypeVar('T')
 
 
@@ -30,14 +35,48 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
         
     Returns:
         Decorated function that measures and reports execution time.
+        
+    Raises:
+        NodeError: If there's an error during node execution
     """
     @functools.wraps(func)
     async def wrapper(self, ctx, *args, **kwargs):
         start_time = time.time()
-        result = await func(self, ctx, *args, **kwargs)
-        process_time = time.time() - start_time
-        print(f"{self._log_prefix}: {self._get_output_text(ctx)} (took {process_time:.3f}s)")
-        return result
+        try:
+            # Call the original function
+            result = await func(self, ctx, *args, **kwargs)
+            
+            # Calculate processing time
+            process_time = time.time() - start_time
+            
+            # Log the result
+            logger.info(
+                "%s: %s (took %.3fs)", 
+                self._log_prefix, 
+                self._get_output_text(ctx), 
+                process_time
+            )
+            print(f"{self._log_prefix}: {self._get_output_text(ctx)} (took {process_time:.3f}s)")
+            
+            return result
+            
+        except Exception as e:
+            # Calculate time even for failures
+            process_time = time.time() - start_time
+            
+            # Log the error
+            logger.error(
+                "Error in %s node after %.3fs: %s", 
+                self.__class__.__name__, 
+                process_time, 
+                str(e)
+            )
+            
+            # Reraise as NodeError if it's not already
+            if not isinstance(e, NodeError):
+                raise NodeError(f"Node execution failed: {str(e)}") from e
+            raise
+            
     return cast(Callable[..., T], wrapper)
 
 
