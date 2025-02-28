@@ -1,5 +1,8 @@
 """
-Graph definition and runner for the Hello World example.
+Graph definition for the Hello World example.
+
+This module defines the graph structure for the Hello World application,
+including the nodes and their dependencies.
 """
 
 from __future__ import annotations
@@ -9,17 +12,35 @@ from typing import Dict, List, Tuple, Any, Optional
 
 from pydantic_graph import Graph, GraphRunResult
 
-from .nodes import HelloNode, WorldNode, CombineNode, PrintNode
-from .state import MyState
-from .dependencies import GraphDependencies
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from hello_world.core.state import MyState
+from hello_world.core.dependencies import HelloWorldDependencies
 
 
-# Define our graph
-hello_world_graph = Graph(nodes=[HelloNode, WorldNode, CombineNode, PrintNode])
+def get_hello_world_graph(dependencies: HelloWorldDependencies = None) -> Graph:
+    """
+    Get the Hello World graph with optional dependencies.
+    
+    Args:
+        dependencies: Optional dependencies to inject into the graph. If not provided,
+                      default dependencies will be used.
+                      
+    Returns:
+        A configured Graph instance.
+    """
+    # Create default dependencies if none are provided
+    deps = dependencies or HelloWorldDependencies()
+    
+    # Define our graph with nodes and dependencies
+    graph = Graph(
+        nodes=[HelloNode, WorldNode, CombineNode, PrintNode],
+    )
+    
+    return graph
 
 
 async def run_graph(initial_state: Optional[MyState] = None, 
-                   dependencies: Optional[GraphDependencies] = None) -> Tuple[str, MyState, List[Any]]:
+                   dependencies: Optional[HelloWorldDependencies] = None) -> Tuple[str, MyState, List[Any]]:
     """
     Run the Hello World graph.
     
@@ -34,10 +55,14 @@ async def run_graph(initial_state: Optional[MyState] = None,
     state = initial_state or MyState()
     
     # Create dependencies if none are provided
-    deps = dependencies or GraphDependencies()
+    deps = dependencies or HelloWorldDependencies()
     
-    # Run the graph and get the GraphRunResult object
-    graph_result = await hello_world_graph.run(HelloNode(), state=state, deps=deps)
+    # Get the graph
+    graph = get_hello_world_graph()
+    
+    # Run the graph with state and deps
+    # Pass the dependencies to graph.run
+    graph_result = await graph.run(HelloNode(), state=state, deps=deps)
     
     return graph_result.output, graph_result.state, graph_result.history
 

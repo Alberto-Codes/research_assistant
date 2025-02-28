@@ -15,8 +15,8 @@ import asyncio
 
 from pydantic_graph import BaseNode, End, GraphRunContext
 
-from .state import MyState
-from .dependencies import GraphDependencies
+from hello_world.core.state import MyState
+from hello_world.core.dependencies import HelloWorldDependencies
 
 
 T = TypeVar('T')
@@ -42,7 +42,7 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
 
 
 @dataclass
-class HelloNode(BaseNode[MyState, GraphDependencies, str]):
+class HelloNode(BaseNode[MyState, HelloWorldDependencies, str]):
     """First node that generates the 'Hello' text.
     
     This node uses the LLM client from dependencies to generate
@@ -72,6 +72,9 @@ class HelloNode(BaseNode[MyState, GraphDependencies, str]):
         Returns:
             The next node to run in the graph.
         """
+        # Record the start time
+        start_time = time.time()
+        
         # Only set hello_text if it's not already set
         if not ctx.state.hello_text:
             # Use the LLM client from dependencies
@@ -82,11 +85,19 @@ class HelloNode(BaseNode[MyState, GraphDependencies, str]):
         # Add a small delay to simulate processing
         await asyncio.sleep(0.1)
         
+        # Record the generation time
+        ctx.state.hello_generation_time = time.time() - start_time
+        
+        # Add to execution history
+        if "node_execution_history" not in ctx.state.__dict__:
+            ctx.state.node_execution_history = []
+        ctx.state.node_execution_history.append(f"HelloNode: Generated '{ctx.state.hello_text}'")
+        
         return WorldNode()
 
 
 @dataclass
-class WorldNode(BaseNode[MyState, GraphDependencies, str]):
+class WorldNode(BaseNode[MyState, HelloWorldDependencies, str]):
     """Second node that generates the 'World' text.
     
     This node uses the LLM client from dependencies to generate
@@ -116,6 +127,9 @@ class WorldNode(BaseNode[MyState, GraphDependencies, str]):
         Returns:
             The next node to run in the graph.
         """
+        # Record the start time
+        start_time = time.time()
+        
         # Only set world_text if it's not already set
         if not ctx.state.world_text:
             # Use the LLM client from dependencies
@@ -126,11 +140,17 @@ class WorldNode(BaseNode[MyState, GraphDependencies, str]):
         # Add a small delay to simulate processing
         await asyncio.sleep(0.2)
         
+        # Record the generation time
+        ctx.state.world_generation_time = time.time() - start_time
+        
+        # Add to execution history
+        ctx.state.node_execution_history.append(f"WorldNode: Generated '{ctx.state.world_text}'")
+        
         return CombineNode()
 
 
 @dataclass
-class CombineNode(BaseNode[MyState, GraphDependencies, str]):
+class CombineNode(BaseNode[MyState, HelloWorldDependencies, str]):
     """Third node that combines the hello and world texts.
     
     This node combines the hello_text and world_text from the state
@@ -160,16 +180,25 @@ class CombineNode(BaseNode[MyState, GraphDependencies, str]):
         Returns:
             The next node to run in the graph.
         """
+        # Record the start time
+        start_time = time.time()
+        
         ctx.state.combined_text = f"{ctx.state.hello_text} {ctx.state.world_text}!"
         
         # Add a small delay to simulate processing
         await asyncio.sleep(0.15)
         
+        # Record the generation time
+        ctx.state.combine_generation_time = time.time() - start_time
+        
+        # Add to execution history
+        ctx.state.node_execution_history.append(f"CombineNode: Combined '{ctx.state.combined_text}'")
+        
         return PrintNode()
 
 
 @dataclass
-class PrintNode(BaseNode[MyState, GraphDependencies, str]):
+class PrintNode(BaseNode[MyState, HelloWorldDependencies, str]):
     """Final node that prints the combined text and ends the graph.
     
     This node takes the combined_text from the state, prints it,
@@ -199,7 +228,19 @@ class PrintNode(BaseNode[MyState, GraphDependencies, str]):
         Returns:
             An End object containing the combined text.
         """
+        # Record the start time
+        start_time = time.time()
+        
         # Add a small delay to simulate processing
         await asyncio.sleep(0.05)
+        
+        # Calculate the total execution time
+        ctx.state.total_time = time.time() - start_time + \
+                               ctx.state.hello_generation_time + \
+                               ctx.state.world_generation_time + \
+                               ctx.state.combine_generation_time
+        
+        # Add to execution history
+        ctx.state.node_execution_history.append(f"PrintNode: Final output '{ctx.state.combined_text}'")
         
         return End(ctx.state.combined_text) 

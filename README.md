@@ -8,14 +8,23 @@ The project follows a clean separation of concerns:
 
 ```
 src/
-├── __init__.py             # Package initialization
+├── __init__.py              # Package initialization
 ├── hello_world/
-│   ├── __init__.py         # Exports public API
-│   ├── dependencies.py     # Dependency injection definitions
-│   ├── graph.py            # Graph definition and runner
-│   ├── nodes.py            # Node definitions
-│   └── state.py            # State class definition
-└── main.py                 # Main entry point
+│   ├── __init__.py          # Package initialization
+│   ├── core/                # Core business logic
+│   │   ├── dependencies.py  # Dependency injection definitions
+│   │   ├── graph.py         # Graph definition
+│   │   ├── nodes.py         # Node definitions
+│   │   └── state.py         # State class definition
+│   ├── api/                 # API layer
+│   │   └── services.py      # Service functions for interfaces
+│   ├── cli/                 # Command-line interface
+│   │   └── commands.py      # CLI functionality
+│   └── ui/                  # User interface layer
+│       ├── streamlit/       # Streamlit web UI
+│       │   └── app.py       # Streamlit application
+│       └── web/             # (Future) FastAPI web API
+└── main.py                  # Main entry point
 ```
 
 ## Overview
@@ -89,33 +98,49 @@ The tests use pytest fixtures to set up test dependencies and mock objects, maki
 
 ## Running the Example
 
-To run the example with default values:
+To run the example, you can use the hello-graph command with different interfaces:
+
+### Command-Line Interface
 
 ```bash
-# Using the module
-pipenv run python src/main.py
+# Run the CLI with default values
+pipenv run hello-graph cli
 
-# Using the installed console script
-pipenv run hello-graph
+# Run the CLI with custom LLM and prefix
+pipenv run hello-graph cli --use-custom-llm --prefix "AI"
 ```
 
-You can also customize the "Hello" and "World" text with command-line arguments:
+### Streamlit Web Interface
 
 ```bash
-pipenv run hello-graph --hello "Greetings" --world "Universe"
+# Run the Streamlit UI
+pipenv run hello-graph ui
+
+# Run on a specific port
+pipenv run hello-graph ui --port 8502
 ```
 
-### Using Dependency Injection
+The Streamlit interface provides a user-friendly way to interact with the application, including:
 
-The application supports dependency injection for an LLM client:
+- A configuration sidebar for setting options
+- Real-time display of results
+- Detailed timing information
+- Execution history visualization
 
-```bash
-# Use the custom LLM client
-pipenv run hello-graph --use-custom-llm
+## Architecture
 
-# Use the custom LLM client with a prefix
-pipenv run hello-graph --use-custom-llm --prefix "AI"
-```
+The application follows a layered architecture pattern:
+
+1. **Core Layer**: Contains the essential business logic, including graph nodes, state, and dependencies
+2. **API Layer**: Provides service functions that can be reused across interfaces
+3. **Interface Layers**: 
+   - CLI: Command-line interface for running the application
+   - UI: Web interfaces including Streamlit (and future FastAPI)
+
+This architecture makes it easy to:
+- Add new interfaces without modifying core logic
+- Share functionality between interfaces
+- Test each layer independently
 
 ## Expected Output
 

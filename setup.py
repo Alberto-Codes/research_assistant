@@ -11,6 +11,7 @@ setup(
     install_requires=[
         "pydantic-graph",
         "pydantic-ai",
+        "streamlit",
     ],
     extras_require={
         "dev": [
@@ -32,7 +33,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "hello-graph=main:cli_entry",
+            "hello-graph=main:main",
         ],
     },
 ) 

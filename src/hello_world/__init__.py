@@ -2,10 +2,14 @@
 Hello World Pydantic Graph implementation.
 """
 
-from .nodes import HelloNode, WorldNode, CombineNode, PrintNode
-from .state import MyState
-from .graph import hello_world_graph, run_graph
-from .dependencies import GraphDependencies, LLMClient, MockLLMClient
+# Re-export key components for backward compatibility
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from hello_world.core.state import MyState
+from hello_world.core.graph import get_hello_world_graph, run_graph, display_results
+from hello_world.core.dependencies import HelloWorldDependencies, LLMClient, MockLLMClient, CustomLLMClient
+
+# Temporarily comment out this import to resolve circular dependency
+# from hello_world.api.services import generate_hello_world
 
 __all__ = [
     # Nodes
@@ -18,11 +22,16 @@ __all__ = [
     "MyState",
     
     # Graph
-    "hello_world_graph",
+    "get_hello_world_graph",
     "run_graph",
+    "display_results",
     
     # Dependencies
-    "GraphDependencies",
+    "HelloWorldDependencies",
     "LLMClient",
     "MockLLMClient",
+    "CustomLLMClient",
+    
+    # Services - temporarily commented out
+    # "generate_hello_world",
 ] 
