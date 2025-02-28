@@ -1,14 +1,17 @@
 """
-Tests for the Hello World graph functionality.
+Tests for the graph implementation.
+
+This module tests the Hello World graph functionality, including initialization,
+execution with various state and dependency configurations, and result processing.
 """
 
 import pytest
 import asyncio
 
-from hello_world.graph import hello_world_graph, run_graph, display_results
-from hello_world.state import MyState
-from hello_world.nodes import HelloNode
-from hello_world.dependencies import GraphDependencies
+from hello_world.core.graph import get_hello_world_graph as hello_world_graph, run_graph, display_results
+from hello_world.core.state import MyState
+from hello_world.core.nodes import HelloNode
+from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
 
 
 @pytest.mark.asyncio

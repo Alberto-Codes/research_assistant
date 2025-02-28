@@ -1,13 +1,17 @@
 """
-Tests for the CLI functionality in main.py.
+Tests for the CLI interface.
+
+This module tests the command-line interface functionality for the Hello World application,
+including argument parsing, execution, and output handling.
 """
 
 import pytest
 import asyncio
 from unittest.mock import patch, MagicMock, ANY
 
-from hello_world.state import MyState
-from src.main import main, cli_entry, CustomLLMClient
+from hello_world.core.state import MyState
+from hello_world.core.graph import GraphRunResult
+from hello_world.ui.cli import main, parse_args, CustomLLMClient
 
 
 @pytest.mark.asyncio
@@ -106,7 +110,7 @@ def test_cli_entry():
     with patch("asyncio.run") as mock_asyncio_run:
         with patch("src.main.main") as mock_main:
             # Act
-            cli_entry()
+            parse_args()
             
             # Assert
             mock_asyncio_run.assert_called_once_with(ANY)  # We can't check exact coroutine equality 

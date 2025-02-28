@@ -1,12 +1,15 @@
 """
-Tests for the Hello World dependencies and dependency injection.
+Tests for the dependencies module.
+
+This module tests the functionality of the GraphDependencies class and
+related components, including the LLM client implementations.
 """
 
 import pytest
 import asyncio
 from typing import Protocol
 
-from hello_world.dependencies import GraphDependencies, LLMClient, MockLLMClient
+from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies, LLMClient, MockLLMClient
 
 
 class CustomTestLLMClient:

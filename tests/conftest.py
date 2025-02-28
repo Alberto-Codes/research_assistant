@@ -9,8 +9,8 @@ multiple test modules.
 import asyncio
 import pytest
 
-from hello_world.state import MyState
-from hello_world.dependencies import GraphDependencies, MockLLMClient, LLMClient
+from hello_world.core.state import MyState
+from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies, MockLLMClient, LLMClient
 
 
 # We're removing the custom event_loop fixture and using the one provided by pytest-asyncio

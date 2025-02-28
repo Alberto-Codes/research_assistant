@@ -1,16 +1,17 @@
 """
-Tests for the Hello World nodes.
+Tests for the node implementations.
 
-This module contains tests for the node classes defined in the hello_world.nodes module,
-including HelloNode, WorldNode, CombineNode, and PrintNode.
+This module contains tests for each of the node classes
+used in the Hello World graph.
 """
 
 import pytest
 import asyncio
+from unittest.mock import MagicMock
 
-from hello_world.nodes import HelloNode, WorldNode, CombineNode, PrintNode
-from hello_world.state import MyState
-from hello_world.dependencies import GraphDependencies
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from hello_world.core.state import MyState
+from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
 
 
 @pytest.mark.asyncio
