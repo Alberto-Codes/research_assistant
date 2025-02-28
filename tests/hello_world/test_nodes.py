@@ -1,5 +1,8 @@
 """
 Tests for the Hello World nodes.
+
+This module contains tests for the node classes defined in the hello_world.nodes module,
+including HelloNode, WorldNode, CombineNode, and PrintNode.
 """
 
 import pytest
@@ -12,7 +15,18 @@ from hello_world.dependencies import GraphDependencies
 
 @pytest.mark.asyncio
 async def test_hello_node(initial_state, test_dependencies, test_llm_client):
-    """Test that the HelloNode correctly updates the state."""
+    """Test that the HelloNode correctly updates the state.
+    
+    Args:
+        initial_state: A clean MyState instance.
+        test_dependencies: Dependencies with a test LLM client.
+        test_llm_client: The test LLM client that tracks calls.
+        
+    Verifies:
+        - The hello_text is set to the expected value
+        - The next node is a WorldNode
+        - The LLM client was called with a prompt containing "hello"
+    """
     # Arrange
     node = HelloNode()
     ctx = type("GraphRunContext", (), {"state": initial_state, "deps": test_dependencies})()
@@ -28,7 +42,18 @@ async def test_hello_node(initial_state, test_dependencies, test_llm_client):
 
 @pytest.mark.asyncio
 async def test_world_node(initial_state, test_dependencies, test_llm_client):
-    """Test that the WorldNode correctly updates the state."""
+    """Test that the WorldNode correctly updates the state.
+    
+    Args:
+        initial_state: A clean MyState instance.
+        test_dependencies: Dependencies with a test LLM client.
+        test_llm_client: The test LLM client that tracks calls.
+        
+    Verifies:
+        - The world_text is set to the expected value
+        - The next node is a CombineNode
+        - The LLM client was called with a prompt containing "world"
+    """
     # Arrange
     initial_state.hello_text = "Test Hello"  # Set by previous node
     node = WorldNode()
@@ -45,7 +70,16 @@ async def test_world_node(initial_state, test_dependencies, test_llm_client):
 
 @pytest.mark.asyncio
 async def test_combine_node(initial_state, test_dependencies):
-    """Test that the CombineNode correctly combines the texts."""
+    """Test that the CombineNode correctly combines the texts.
+    
+    Args:
+        initial_state: A clean MyState instance.
+        test_dependencies: Dependencies with a test LLM client.
+        
+    Verifies:
+        - The combined_text is set to the expected concatenated value
+        - The next node is a PrintNode
+    """
     # Arrange
     initial_state.hello_text = "Test Hello"
     initial_state.world_text = "Test World"
@@ -62,7 +96,16 @@ async def test_combine_node(initial_state, test_dependencies):
 
 @pytest.mark.asyncio
 async def test_print_node(initial_state, test_dependencies):
-    """Test that the PrintNode correctly ends the graph."""
+    """Test that the PrintNode correctly ends the graph.
+    
+    Args:
+        initial_state: A clean MyState instance.
+        test_dependencies: Dependencies with a test LLM client.
+        
+    Verifies:
+        - The End result contains the expected combined text
+        - The result is an End object with the proper attributes
+    """
     # Arrange
     initial_state.hello_text = "Test Hello"
     initial_state.world_text = "Test World"
