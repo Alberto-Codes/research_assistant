@@ -25,6 +25,7 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Package Renaming**: Successfully renamed the package from `hello_world` to `research_agent`, updating all references and ensuring compatibility.
 - **Gemini Chat Interface**: Implemented a fully functional chat interface for interacting with Google's Gemini LLM.
   - Streaming responses for real-time interaction
   - Custom system prompt configuration
@@ -37,7 +38,7 @@ Think of it as a pipeline where information flows through different stations (or
 - **Enhanced error detection**: Added validation in the `_measure_execution_time` decorator to catch invalid node return types.
 - **Improved dependency handling**: Added fallback imports and better error handling for optional dependencies.
 - **Streamlined services layer**: Refactored the API services to use the core implementations more effectively.
-- Added comprehensive test coverage for all components
+- **Comprehensive Test Coverage**: Updated and expanded test suite to work with the new package structure
 - Implemented static code analysis tools (linters, formatters)
 - Created a Makefile to simplify common development tasks
 - Developed a cleanup script to maintain code quality
@@ -49,7 +50,7 @@ Think of it as a pipeline where information flows through different stations (or
 
 - **Vertex AI Integration**: Added support for Google Vertex AI through Pydantic-AI's VertexAIModel, providing a reliable and efficient way to call Google's Gemini models.
 - **Gemini Chat UI**: Created a dedicated Streamlit interface for conversational interaction with Gemini models.
-  - Accessible through command line: `python -m hello_world.ui.cli_entry --app gemini` or `research_agent --app gemini`
+  - Accessible through command line: `python -m research_agent.ui.cli_entry --app gemini` or `research_agent --app gemini`
   - Features real-time streaming responses for a natural chat experience
   - Supports customizable system prompts to define assistant behavior
   - Includes conversation memory that can be toggled on/off
@@ -115,7 +116,7 @@ If you're interested in trying the Research Agent:
 
 2. **To use the Gemini Chat interface**:
    ```
-   python -m hello_world.ui.cli_entry --app gemini
+   python -m research_agent.ui.cli_entry --app gemini
    ```
    or
    ```
