@@ -1,6 +1,108 @@
 # Research Agent
 
-This project demonstrates how to use the `pydantic-graph` library to create a research agent, building on a "Hello World" example.
+A Pydantic Graph AI Agent implementation with Gemini integration.
+
+## Overview
+
+This project implements an AI agent using Pydantic Graph and integrates with Google's Gemini Flash 2.0 model through Vertex AI. The implementation includes both actual API connections and mock clients for local development and testing.
+
+## Features
+
+- Integrates with Google Vertex AI using Gemini models
+- Uses Pydantic-AI for streamlined LLM interaction
+- Graph-based workflow for AI agent implementation
+- Command-line interface for prompt-based interactions
+- Mock implementation for local testing without API credentials
+
+## Installation
+
+1. Clone the repository:
+   ```
+   git clone <repository-url>
+   cd research_agent
+   ```
+
+2. Install dependencies with pipenv:
+   ```
+   pipenv install
+   ```
+
+## Usage
+
+### Command Line Interface
+
+The project provides a command-line interface for running the AI agent:
+
+#### Hello World Example
+
+```
+python -m hello_world.cli.commands hello [--prefix PREFIX] [--use-custom-llm]
+```
+
+#### Gemini AI Agent
+
+```
+python -m hello_world.cli.commands gemini --prompt "Your question here" [--project-id PROJECT_ID] [--use-mock-gemini]
+```
+
+Options:
+- `--prompt`: The prompt to send to the Gemini model (required)
+- `--project-id`: Google Cloud project ID (optional)
+- `--use-mock-gemini`: Use the mock Gemini client for local testing without authentication
+
+### Development Example
+
+For development and testing without setting up Google Cloud authentication, you can use the provided example:
+
+```
+python examples/gemini_pydantic_ai_example.py "Your question here"
+```
+
+Or use the CLI with the mock client:
+
+```
+python -m hello_world.cli.commands gemini --prompt "Your question here" --use-mock-gemini
+```
+
+## Authentication for Vertex AI
+
+To use the actual Vertex AI service:
+
+1. Install the Google Cloud CLI
+2. Authenticate with `gcloud auth application-default login`
+3. Make sure you have the Vertex AI API enabled in your Google Cloud project
+
+## Project Structure
+
+- `src/hello_world/`: Main package
+  - `api/`: API layer including services
+  - `cli/`: Command-line interface
+  - `core/`: Core implementation including nodes, graph, and dependencies
+  - `ui/`: UI components (Streamlit)
+- `examples/`: Example scripts for testing and demonstration
+- `tests/`: Unit tests
+
+## Dependencies
+
+- `pydantic-ai`: For LLM interaction and Vertex AI integration
+- `pydantic-graph`: For graph-based workflow
+
+## Testing Approach
+
+This project follows best practices for testing, with a focus on keeping production code and test code separate:
+
+### Test-First Development
+- Unit tests for all components
+- Integration tests for workflows
+- Mock clients for external services (Vertex AI)
+
+### Mock Clients
+We've deprecated the practice of including mock implementations in production code. Instead:
+- All mock implementations are kept in test files
+- We use pytest fixtures for providing test doubles
+- Test against protocols rather than concrete implementations
+
+For more details, see the [Testing Guide](TESTING.md).
 
 ## Project Structure
 
@@ -256,4 +358,12 @@ This structure provides a solid foundation for evolving the project:
 - Add additional utility functions for processing graph results
 - Implement real LLM clients that use APIs like OpenAI, Anthropic, etc.
 
-The separation of concerns makes it easy to modify or extend any part of the system without affecting the others. 
+The separation of concerns makes it easy to modify or extend any part of the system without affecting the others.
+
+## Documentation
+
+- [Architecture Overview](docs/architecture.md)
+- [Development Guide](docs/development.md)
+- [User Guide](docs/user_guide.md)
+- [Gemini Integration Guide](docs/gemini_integration.md)
+- [Testing Guide](TESTING.md) 

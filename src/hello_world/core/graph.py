@@ -22,7 +22,7 @@ except ImportError:
         """Error raised when a graph fails to execute."""
         pass
 
-from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode, GeminiAgentNode
 from hello_world.core.state import MyState
 from hello_world.core.dependencies import HelloWorldDependencies
 
@@ -48,6 +48,28 @@ def get_hello_world_graph(dependencies: Optional[HelloWorldDependencies] = None)
     # Define our graph with nodes and dependencies
     graph = Graph(
         nodes=[HelloNode, WorldNode, CombineNode, PrintNode],
+    )
+    
+    return graph
+
+
+def get_gemini_agent_graph(dependencies: Optional[HelloWorldDependencies] = None) -> Graph:
+    """
+    Get the Gemini agent graph with optional dependencies.
+    
+    Args:
+        dependencies: Optional dependencies to inject into the graph. If not provided,
+                      default dependencies will be used.
+                      
+    Returns:
+        A configured Graph instance.
+    """
+    # Create default dependencies if none are provided
+    deps = dependencies or HelloWorldDependencies(use_gemini=True)
+    
+    # Define our graph with nodes and dependencies
+    graph = Graph(
+        nodes=[GeminiAgentNode],
     )
     
     return graph
@@ -94,6 +116,47 @@ async def run_graph(initial_state: Optional[MyState] = None,
         raise
     except Exception as e:
         logger.error("Unexpected error during graph execution: %s", str(e))
+        raise
+
+
+async def run_gemini_agent_graph(user_prompt: str, 
+                           dependencies: Optional[HelloWorldDependencies] = None) -> Tuple[str, MyState, List[Any]]:
+    """
+    Run the Gemini agent graph with a user prompt.
+    
+    Args:
+        user_prompt: The user's prompt to send to the Gemini model.
+        dependencies: Optional dependencies. If not provided, default dependencies will be used.
+        
+    Returns:
+        A tuple of (output, final_state, history)
+        
+    Raises:
+        GraphError: If there's an error during graph execution
+        ValueError: If invalid inputs are provided
+    """
+    try:
+        # Create an initial state with the user prompt
+        state = MyState(user_prompt=user_prompt)
+        
+        # Create dependencies if none are provided
+        deps = dependencies or HelloWorldDependencies(use_gemini=True)
+        
+        # Get the graph
+        graph = get_gemini_agent_graph()
+        
+        # Run the graph with state and deps
+        logger.debug("Starting Gemini agent graph execution with prompt: %s", user_prompt)
+        graph_result = await graph.run(GeminiAgentNode(), state=state, deps=deps)
+        logger.debug("Gemini agent graph execution completed successfully")
+        
+        return graph_result.output, graph_result.state, graph_result.history
+    
+    except GraphError as e:
+        logger.error("Gemini agent graph execution failed: %s", str(e))
+        raise
+    except Exception as e:
+        logger.error("Unexpected error during Gemini agent graph execution: %s", str(e))
         raise
 
 

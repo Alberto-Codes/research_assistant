@@ -9,8 +9,10 @@ from typing import Optional, Tuple, List, Any
 from hello_world.core.dependencies import HelloWorldDependencies
 from hello_world.core.graph import get_hello_world_graph as core_get_hello_world_graph
 from hello_world.core.graph import run_graph
+from hello_world.core.graph import get_gemini_agent_graph as core_get_gemini_agent_graph
+from hello_world.core.graph import run_gemini_agent_graph
 from hello_world.core.state import MyState
-from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode, GeminiAgentNode
 from pydantic_graph import Graph
 # Try to import GraphDeps, or define it if not available
 try:
@@ -45,6 +47,33 @@ async def generate_hello_world(use_custom_llm: bool = False, prefix: Optional[st
     return final_state
 
 
+async def generate_ai_response(user_prompt: str, project_id: Optional[str] = None, use_mock_gemini: bool = False) -> MyState:
+    """
+    Generate an AI response using the Gemini model.
+    
+    Args:
+        user_prompt: The user's prompt to send to the Gemini model.
+        project_id: Optional Google Cloud project ID. If None, will try to detect from environment.
+        use_mock_gemini: Whether to use the mock Gemini client for local testing.
+        
+    Returns:
+        The final state after running the graph.
+    """
+    # Create dependencies with Gemini configuration
+    dependencies = HelloWorldDependencies(
+        use_gemini=True, 
+        project_id=project_id,
+        use_mock_gemini=use_mock_gemini
+    )
+    
+    # Use our local run_gemini_agent_graph function
+    output, final_state, history = await run_gemini_agent_graph(
+        user_prompt=user_prompt, 
+        dependencies=dependencies
+    )
+    return final_state
+
+
 def get_hello_world_graph() -> Graph:
     """
     Get the Hello World graph.
@@ -54,6 +83,17 @@ def get_hello_world_graph() -> Graph:
     """
     # Use the imported function from core module instead of duplicating
     return core_get_hello_world_graph()
+
+
+def get_gemini_agent_graph() -> Graph:
+    """
+    Get the Gemini agent graph.
+    
+    Returns:
+        A configured Graph instance.
+    """
+    # Use the imported function from core module
+    return core_get_gemini_agent_graph()
 
 
 async def run_graph(initial_state: Optional[MyState] = None, 

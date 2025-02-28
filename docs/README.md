@@ -10,6 +10,7 @@ Welcome to the Research Agent documentation. This directory contains resources t
 - [Development Guide](development.md) - Guide for developers
 - [Contributing Guide](CONTRIBUTING.md) - How to contribute using the fork and pull model
 - [API Reference](architecture.md#api-endpoints) - Technical reference for the Research Agent API endpoints
+- [Gemini Integration Guide](gemini_integration.md) - Guide to using the Gemini AI model integration
 
 ## Documentation Structure
 

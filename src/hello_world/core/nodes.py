@@ -293,4 +293,59 @@ class PrintNode(BaseNode[MyState, HelloWorldDependencies, str]):
         # Add to execution history
         ctx.state.node_execution_history.append(f"PrintNode: Final output '{ctx.state.combined_text}'")
         
-        return End(ctx.state.combined_text) 
+        return End(ctx.state.combined_text)
+
+
+@dataclass
+class GeminiAgentNode(BaseNode[MyState, HelloWorldDependencies, str]):
+    """Node that processes a user prompt and generates an AI response using Gemini.
+    
+    This node takes the user_prompt from the state, sends it to the Gemini model,
+    and stores the response in the state.
+    """
+    
+    _log_prefix = "AI Response"
+    
+    def _get_output_text(self, ctx):
+        """Get the text to display in logs.
+        
+        Args:
+            ctx: The graph run context.
+            
+        Returns:
+            The text to display in logs.
+        """
+        return ctx.state.ai_response
+    
+    @_measure_execution_time
+    async def run(self, ctx: GraphRunContext) -> End[str]:
+        """Process the user prompt and generate an AI response.
+        
+        Args:
+            ctx: The graph run context containing state and dependencies.
+            
+        Returns:
+            An End object containing the AI response.
+        """
+        # Record the start time
+        start_time = time.time()
+        
+        # Only generate response if we have a user prompt
+        if ctx.state.user_prompt:
+            # Use the LLM client from dependencies
+            ctx.state.ai_response = await ctx.deps.llm_client.generate_text(ctx.state.user_prompt)
+        else:
+            ctx.state.ai_response = "No prompt provided. Please enter a question or prompt."
+        
+        # Record the generation time
+        ctx.state.ai_generation_time = time.time() - start_time
+        
+        # Add to execution history
+        if "node_execution_history" not in ctx.state.__dict__:
+            ctx.state.node_execution_history = []
+        ctx.state.node_execution_history.append(f"GeminiAgentNode: Generated response to '{ctx.state.user_prompt}'")
+        
+        # Calculate the total execution time
+        ctx.state.total_time = ctx.state.ai_generation_time
+        
+        return End(ctx.state.ai_response) 

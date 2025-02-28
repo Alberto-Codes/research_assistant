@@ -35,6 +35,14 @@ Think of it as a pipeline where information flows through different stations (or
 - Developed a cleanup script to maintain code quality
 - Streamlined the Streamlit web interface for better user experience
 
+### Recent Updates
+
+### Integrations
+
+- **Vertex AI Integration**: Added support for Google Vertex AI through Pydantic-AI's VertexAIModel, providing a reliable and efficient way to call Google's Gemini models.
+
+- **Pydantic-AI Integration**: Replaced direct Google Cloud API calls with Pydantic-AI's VertexAI integration, simplifying authentication and error handling.
+
 ### Known Limitations
 
 - The current implementation uses mock LLM (Large Language Model) clients instead of connecting to real AI services
