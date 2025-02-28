@@ -12,6 +12,14 @@ setup(
         "pydantic-graph",
         "pydantic-ai",
     ],
+    extras_require={
+        "dev": [
+            "black",
+            "isort",
+            "pytest",
+            "pytest-asyncio",
+        ],
+    },
     python_requires=">=3.9",
     classifiers=[
         "Development Status :: 3 - Alpha",

@@ -50,7 +50,42 @@ Or using pip:
 pip install -e .
 ```
 
+For development with testing, install with the dev extras:
+
+```bash
+pipenv install -e ".[dev]"
+# or
+pip install -e ".[dev]"
+```
+
 This will install the package in development mode, allowing you to make changes to the code and see them reflected immediately.
+
+## Testing
+
+This project uses pytest as its testing framework. To run the tests:
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/hello_world/test_nodes.py
+
+# Run specific test
+pytest tests/hello_world/test_nodes.py::test_hello_node
+```
+
+Test categories:
+
+- **Node Tests**: Verify each node's individual behavior
+- **Dependency Tests**: Ensure dependency injection works correctly
+- **Graph Tests**: Test complete graph execution with different configurations
+- **CLI Tests**: Verify command-line interface functionality
+
+The tests use pytest fixtures to set up test dependencies and mock objects, making it easy to test different aspects of the application in isolation.
 
 ## Running the Example
 

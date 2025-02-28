@@ -6,11 +6,13 @@ name = "pypi"
 [packages]
 pydantic-ai = "*"
 pydantic-graph = "*"
-hello-pydantic-graph = {file = ".", editable = true}
+hello-pydantic-graph = {extras = ["dev"], file = ".", editable = true}
 
 [dev-packages]
 black = "*"
 isort = "*"
+pytest = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.13"
