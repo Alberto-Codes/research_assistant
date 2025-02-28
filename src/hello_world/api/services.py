@@ -7,9 +7,20 @@ This module provides service functions that can be used by different interfaces
 from typing import Optional, Tuple, List, Any
 
 from hello_world.core.dependencies import HelloWorldDependencies
-from hello_world.core.graph import get_hello_world_graph, run_graph
+from hello_world.core.graph import get_hello_world_graph as core_get_hello_world_graph
+from hello_world.core.graph import run_graph
 from hello_world.core.state import MyState
-from pydantic_graph import Graph, GraphDeps
+from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
+from pydantic_graph import Graph
+# Try to import GraphDeps, or define it if not available
+try:
+    from pydantic_graph import GraphDeps
+except ImportError:
+    # Define GraphDeps locally if not available in pydantic_graph
+    class GraphDeps:
+        """Mock GraphDeps class used when the real one is not available."""
+        pass
+
 from concurrent.futures import ProcessPoolExecutor
 from pydantic_graph.nodes import BaseNode, GraphRunContext
 from dataclasses import dataclass
@@ -41,12 +52,8 @@ def get_hello_world_graph() -> Graph:
     Returns:
         A configured Graph instance.
     """
-    # Define our graph with nodes only (no dependencies in constructor)
-    graph = Graph(
-        nodes=[HelloNode, WorldNode, CombineNode, PrintNode],
-    )
-    
-    return graph
+    # Use the imported function from core module instead of duplicating
+    return core_get_hello_world_graph()
 
 
 async def run_graph(initial_state: Optional[MyState] = None, 
@@ -75,14 +82,3 @@ async def run_graph(initial_state: Optional[MyState] = None,
     graph_result = await graph.run(HelloNode(), state=state, deps=deps)
     
     return graph_result.output, graph_result.state, graph_result.history 
-
-
-@dataclass
-class HelloNode(BaseNode[MyState, HelloWorldDependencies]):
-    async def run(self, ctx: GraphRunContext[MyState, HelloWorldDependencies]) -> WorldNode:
-        # Access dependencies via ctx.deps
-        llm_client = ctx.deps.llm_client
-        prefix = ctx.deps.prefix
-        
-        # Use dependencies to do work
-        # ... 

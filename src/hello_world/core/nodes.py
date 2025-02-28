@@ -14,7 +14,13 @@ import functools
 from typing import Any, TypeVar, Callable, cast, Optional
 import asyncio
 
-from pydantic_graph import BaseNode, End, GraphRunContext, NodeError
+# Import what's available from pydantic_graph
+from pydantic_graph import BaseNode, End, GraphRunContext
+
+# Define NodeError if it's not available in pydantic_graph
+class NodeError(Exception):
+    """Error raised when a node fails to execute."""
+    pass
 
 from hello_world.core.state import MyState
 from hello_world.core.dependencies import HelloWorldDependencies
@@ -58,6 +64,11 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
             )
             print(f"{self._log_prefix}: {self._get_output_text(ctx)} (took {process_time:.3f}s)")
             
+            # Ensure we're returning a valid node
+            if result is None:
+                logger.error("Node %s returned None instead of a valid node", self.__class__.__name__)
+                raise NodeError(f"Node {self.__class__.__name__} returned None instead of a valid node")
+                
             return result
             
         except Exception as e:

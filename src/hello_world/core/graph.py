@@ -11,7 +11,16 @@ import datetime
 import logging
 from typing import Dict, List, Tuple, Any, Optional
 
-from pydantic_graph import Graph, GraphRunResult, GraphError
+# Try to import from pydantic_graph with a fallback for GraphError
+try:
+    from pydantic_graph import Graph, GraphRunResult, GraphError
+except ImportError:
+    from pydantic_graph import Graph, GraphRunResult
+    
+    # Define GraphError if it's not available in pydantic_graph
+    class GraphError(Exception):
+        """Error raised when a graph fails to execute."""
+        pass
 
 from hello_world.core.nodes import HelloNode, WorldNode, CombineNode, PrintNode
 from hello_world.core.state import MyState
