@@ -46,7 +46,6 @@ async def test_gemini_agent_node_with_mock(mock_gemini_for_node, state_with_prom
     """
     # Create dependencies with our mock
     deps = HelloWorldDependencies()
-    deps.use_gemini = True  # Enable Gemini mode
     deps.llm_client = mock_gemini_for_node  # Inject our mock client
 
     # Create the node and context
@@ -97,7 +96,6 @@ async def test_gemini_agent_node_with_manual_mock(state_with_prompt):
 
     # Create dependencies with our mock
     deps = HelloWorldDependencies()
-    deps.use_gemini = True
     deps.llm_client = mock_llm
 
     # Create the node and context

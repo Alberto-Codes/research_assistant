@@ -17,56 +17,6 @@ from research_agent.core.graph import GraphRunResult
 from research_agent.core.state import MyState
 
 
-# Define the CustomLLMClient class that was previously imported
-class CustomLLMClient:
-    """Custom LLM client for testing purposes."""
-
-    def __init__(self, prefix=""):
-        """Initialize with an optional prefix for responses."""
-        self.prefix = prefix
-
-    async def generate_text(self, prompt: str) -> str:
-        """Generate text based on the prompt."""
-        if "Hello" in prompt:
-            return f"{self.prefix} Hello".strip()
-        elif "World" in prompt:
-            return f"{self.prefix} World".strip()
-        else:
-            return "Response"
-
-
-@pytest.mark.asyncio
-async def test_custom_llm_client():
-    """Test that the CustomLLMClient generates expected responses."""
-    # Arrange
-    client = CustomLLMClient()
-
-    # Act
-    hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
-    world_response = await client.generate_text("Generate a noun like 'World'")
-    other_response = await client.generate_text("Generate something else")
-
-    # Assert
-    assert hello_response == "Hello"
-    assert world_response == "World"
-    assert other_response == "Response"
-
-
-@pytest.mark.asyncio
-async def test_custom_llm_client_with_prefix():
-    """Test that the CustomLLMClient respects the prefix."""
-    # Arrange
-    client = CustomLLMClient(prefix="Test")
-
-    # Act
-    hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
-    world_response = await client.generate_text("Generate a noun like 'World'")
-
-    # Assert
-    assert hello_response == "Test Hello"
-    assert world_response == "Test World"
-
-
 @pytest.mark.asyncio
 @patch("research_agent.api.services.run_graph")
 @patch("research_agent.cli.commands.display_results")
@@ -77,7 +27,6 @@ async def test_main_with_default_args(mock_parse_args, mock_display_results, moc
     mock_args = MagicMock()
     mock_args.command = "hello"
     mock_args.prefix = ""
-    mock_args.use_custom_llm = False
     mock_parse_args.return_value = mock_args
 
     mock_state = MyState(combined_text="Hello World!")
@@ -101,7 +50,6 @@ async def test_main_with_custom_args(mock_parse_args, mock_display_results, mock
     mock_args = MagicMock()
     mock_args.command = "hello"
     mock_args.prefix = "AI"
-    mock_args.use_custom_llm = True
     mock_parse_args.return_value = mock_args
 
     mock_state = MyState(combined_text="AI Hello AI World!")

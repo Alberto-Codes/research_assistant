@@ -55,11 +55,6 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             default="",
             help="Prefix to add to LLM responses",
         )
-        cli_parser.add_argument(
-            "--use-custom-llm",
-            action="store_true",
-            help="Use the custom LLM client",
-        )
 
         # Streamlit interface
         streamlit_parser = subparsers.add_parser(
@@ -79,11 +74,6 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             type=str,
             default="",
             help="Prefix to add to LLM responses",
-        )
-        parser.add_argument(
-            "--use-custom-llm",
-            action="store_true",
-            help="Use the custom LLM client",
         )
         # Hidden argument for interface, defaulting to 'cli'
         parser.add_argument(
@@ -108,8 +98,6 @@ def run_cli(args: argparse.Namespace) -> None:
 
     # Set the args in sys.argv for the CLI to parse
     cli_args = []
-    if args.use_custom_llm:
-        cli_args.append("--use-custom-llm")
     if args.prefix:
         cli_args.extend(["--prefix", args.prefix])
 

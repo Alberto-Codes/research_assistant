@@ -3,10 +3,9 @@ Research Agent Pydantic Graph implementation.
 """
 
 from research_agent.core.dependencies import (
-    CustomLLMClient,
+    GeminiLLMClient,
     HelloWorldDependencies,
     LLMClient,
-    MockLLMClient,
 )
 from research_agent.core.graph import display_results, get_hello_world_graph, run_graph
 
@@ -29,6 +28,5 @@ __all__ = [
     # Dependencies
     "HelloWorldDependencies",
     "LLMClient",
-    "MockLLMClient",
-    "CustomLLMClient",
+    "GeminiLLMClient",
 ]

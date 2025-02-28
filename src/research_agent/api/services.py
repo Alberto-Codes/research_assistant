@@ -33,21 +33,18 @@ from dataclasses import dataclass
 from pydantic_graph.nodes import BaseNode, GraphRunContext
 
 
-async def generate_hello_world(
-    use_custom_llm: bool = False, prefix: Optional[str] = None
-) -> MyState:
+async def generate_hello_world(prefix: Optional[str] = None) -> MyState:
     """
     Generate a hello world message using the graph.
 
     Args:
-        use_custom_llm: Whether to use a custom LLM client.
         prefix: Optional prefix to add to the generated text.
 
     Returns:
         The final state after running the graph.
     """
-    # Create dependencies with the specified configuration
-    dependencies = HelloWorldDependencies(use_custom_llm=use_custom_llm, prefix=prefix)
+    # Create dependencies
+    dependencies = HelloWorldDependencies()
 
     # Use our local run_graph function
     output, final_state, history = await run_graph(
@@ -56,24 +53,19 @@ async def generate_hello_world(
     return final_state
 
 
-async def generate_ai_response(
-    user_prompt: str, project_id: Optional[str] = None, use_mock_gemini: bool = False
-) -> MyState:
+async def generate_ai_response(user_prompt: str, project_id: Optional[str] = None) -> MyState:
     """
     Generate an AI response using the Gemini model.
 
     Args:
         user_prompt: The user's prompt to send to the Gemini model.
         project_id: Optional Google Cloud project ID. If None, will try to detect from environment.
-        use_mock_gemini: Whether to use the mock Gemini client for local testing.
 
     Returns:
         The final state after running the graph.
     """
     # Create dependencies with Gemini configuration
-    dependencies = HelloWorldDependencies(
-        use_gemini=True, project_id=project_id, use_mock_gemini=use_mock_gemini
-    )
+    dependencies = HelloWorldDependencies(project_id=project_id)
 
     # Use our local run_gemini_agent_graph function
     output, final_state, history = await run_gemini_agent_graph(

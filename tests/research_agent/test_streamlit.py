@@ -13,6 +13,7 @@ import pytest
 # Import the Streamlit testing framework
 from streamlit.testing.v1 import AppTest
 
+from research_agent.core.dependencies import HelloWorldDependencies
 from research_agent.core.state import MyState
 
 # Import the app and related modules
@@ -48,7 +49,6 @@ def test_streamlit_initial_ui():
 
     # Check sidebar elements (adjust indices as needed for your app structure)
     assert "Configuration" in at.sidebar.header[0].value
-    assert "Use Custom LLM Client" in at.sidebar.checkbox[0].label
     assert "Prefix for generated text" in at.sidebar.text_input[0].label
 
     # Check main button
@@ -90,10 +90,8 @@ def test_generate_hello_world_with_different_parameters():
     """Test the generate_hello_world function with different parameters."""
     # Create test cases with different parameters
     test_cases = [
-        {"use_custom_llm": True, "prefix": None},
-        {"use_custom_llm": False, "prefix": None},
-        {"use_custom_llm": True, "prefix": "AI:"},
-        {"use_custom_llm": False, "prefix": "AI:"},
+        {"prefix": None},
+        {"prefix": "AI:"},
     ]
 
     # Test each case
@@ -106,9 +104,7 @@ def test_generate_hello_world_with_different_parameters():
             mock_run_graph.return_value = (mock_output, mock_state, mock_history)
 
             # Create a coroutine to test
-            coro = generate_hello_world(
-                use_custom_llm=case["use_custom_llm"], prefix=case["prefix"]
-            )
+            coro = generate_hello_world(prefix=case["prefix"])
 
             # Run the coroutine with pytest
             asyncio.run(coro)
@@ -116,8 +112,8 @@ def test_generate_hello_world_with_different_parameters():
             # Check the dependencies were created with correct params
             args, kwargs = mock_run_graph.call_args
             assert isinstance(kwargs["initial_state"], MyState)
-            assert kwargs["dependencies"].use_custom_llm == case["use_custom_llm"]
-            assert kwargs["dependencies"].prefix == case["prefix"]
+            # Check correct dependencies were passed
+            assert isinstance(kwargs["dependencies"], HelloWorldDependencies)
 
 
 @pytest.mark.asyncio
@@ -131,13 +127,8 @@ async def test_generate_hello_world_function():
         mock_run_graph.return_value = (mock_output, mock_state, mock_history)
 
         # Act
-        result = await generate_hello_world(use_custom_llm=True, prefix="Test:")
+        result = await generate_hello_world(prefix="Test:")
 
         # Assert
         assert result == mock_state
         mock_run_graph.assert_called_once()
-
-        # Verify correct args
-        args, kwargs = mock_run_graph.call_args
-        assert isinstance(kwargs["initial_state"], MyState)
-        assert kwargs["dependencies"].prefix == "Test:"

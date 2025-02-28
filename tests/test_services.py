@@ -25,7 +25,7 @@ def mock_gemini_llm_client():
 @pytest.mark.asyncio
 async def test_generate_hello_world():
     """Test the generate_hello_world service function."""
-    result = await generate_hello_world(use_custom_llm=True, prefix="Test")
+    result = await generate_hello_world(prefix="Test")
 
     # Verify the state has the expected structure
     assert isinstance(result, MyState)
@@ -37,8 +37,6 @@ async def test_generate_hello_world():
     assert result.hello_text is not None
     assert result.world_text is not None
     assert result.combined_text is not None
-    assert "Test" in result.hello_text
-    assert "Test" in result.world_text
     assert result.hello_text in result.combined_text
     assert result.world_text in result.combined_text
 

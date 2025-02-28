@@ -96,8 +96,8 @@ async def generate_gemini_response(user_prompt: str) -> Tuple[str, MyState, List
     Returns:
         A tuple of (output, final_state, history).
     """
-    # Create dependencies with Gemini enabled
-    dependencies = HelloWorldDependencies(use_gemini=True)
+    # Create dependencies
+    dependencies = HelloWorldDependencies()
 
     # Run the graph with the user prompt
     output, final_state, history = await run_gemini_agent_graph(

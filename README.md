@@ -341,7 +341,7 @@ This project implements dependency injection using pydantic-graph's built-in sup
 
 1. Define a dependencies class in `dependencies.py` that holds service objects
 2. Define a Protocol for the LLM client interface
-3. Provide implementations of the Protocol (MockLLMClient and CustomLLMClient)
+3. Provide implementation of the Protocol (GeminiLLMClient)
 4. Configure nodes to use dependencies by specifying the type parameter: `BaseNode[StateT, DepsT, RunEndT]`
 5. Access dependencies in node methods through `ctx.deps`
 6. Pass dependencies when running the graph with `graph.run(..., deps=dependencies)`

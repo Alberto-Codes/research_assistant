@@ -10,10 +10,12 @@ import asyncio
 
 import pytest
 
+from research_agent.core.dependencies import (
+    GeminiLLMClient,
+)
 from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
 from research_agent.core.dependencies import (
     LLMClient,
-    MockLLMClient,
 )
 from research_agent.core.state import MyState
 
@@ -34,12 +36,12 @@ def initial_state():
 
 @pytest.fixture
 def mock_dependencies():
-    """Provide mock dependencies with a MockLLMClient.
+    """Provide mock dependencies with a GeminiLLMClient.
 
     Returns:
-        A GraphDependencies instance configured with a MockLLMClient.
+        A GraphDependencies instance configured with a GeminiLLMClient.
     """
-    return GraphDependencies(llm_client=MockLLMClient())
+    return GraphDependencies(llm_client=GeminiLLMClient())
 
 
 class TestLLMClient:

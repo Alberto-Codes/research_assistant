@@ -10,10 +10,12 @@ from typing import Protocol
 
 import pytest
 
+from research_agent.core.dependencies import (
+    GeminiLLMClient,
+)
 from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
 from research_agent.core.dependencies import (
     LLMClient,
-    MockLLMClient,
 )
 
 
@@ -33,46 +35,14 @@ class CustomTestLLMClient:
 
 
 @pytest.mark.asyncio
-async def test_mock_llm_client():
-    """Test that the MockLLMClient generates the expected responses."""
-    # Arrange
-    client = MockLLMClient()
-
-    # Act
-    hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
-    world_response = await client.generate_text("Generate a noun like 'World'")
-    other_response = await client.generate_text("Generate something else")
-
-    # Assert
-    assert hello_response == "Hello"
-    assert world_response == "World"
-    assert other_response == "I'm a mock LLM client!"
-
-
-@pytest.mark.asyncio
-async def test_custom_llm_client():
-    """Test that a custom LLM client implementation works correctly."""
-    # Arrange
-    client = CustomTestLLMClient(prefix="Test")
-
-    # Act
-    hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
-    world_response = await client.generate_text("Generate a noun like 'World'")
-
-    # Assert
-    assert hello_response == "Test Hello"
-    assert world_response == "Test World"
-
-
-@pytest.mark.asyncio
 async def test_graph_dependencies_default_init():
-    """Test that GraphDependencies initializes with a default MockLLMClient."""
+    """Test that GraphDependencies initializes with a default GeminiLLMClient."""
     # Arrange & Act
     deps = GraphDependencies()
 
     # Assert
     assert deps.llm_client is not None
-    assert isinstance(deps.llm_client, MockLLMClient)
+    assert isinstance(deps.llm_client, GeminiLLMClient)
 
 
 @pytest.mark.asyncio

@@ -37,21 +37,18 @@ def run_async(coroutine):
     return asyncio.run(coroutine)
 
 
-async def generate_hello_world(
-    use_custom_llm: bool = False, prefix: Optional[str] = None
-) -> MyState:
+async def generate_hello_world(prefix: Optional[str] = None) -> MyState:
     """
     Generate a hello world message using the graph.
 
     Args:
-        use_custom_llm: Whether to use a custom LLM client.
         prefix: Optional prefix to add to the generated text.
 
     Returns:
         The final state after running the graph.
     """
-    # Create dependencies with the specified configuration
-    dependencies = HelloWorldDependencies(use_custom_llm=use_custom_llm, prefix=prefix)
+    # Create dependencies
+    dependencies = HelloWorldDependencies()
 
     # Run the graph directly with the dependencies
     output, final_state, history = await run_graph(
@@ -66,13 +63,11 @@ def main():
     st.markdown(
         """
     This application demonstrates a simple graph-based workflow using Pydantic Graph.
-    You can choose to use a custom LLM client and add a prefix to the generated text.
     """
     )
 
     # Create a sidebar for configuration options
     st.sidebar.header("Configuration")
-    use_custom_llm = st.sidebar.checkbox("Use Custom LLM Client", value=True)
     prefix = st.sidebar.text_input("Prefix for generated text", value="")
 
     # Use empty prefix as None for the service
@@ -86,9 +81,7 @@ def main():
 
             # Call the service
             start_time = time.time()
-            final_state = run_async(
-                generate_hello_world(use_custom_llm=use_custom_llm, prefix=prefix_param)
-            )
+            final_state = run_async(generate_hello_world(prefix=prefix_param))
             total_time = time.time() - start_time
 
             # Display the results

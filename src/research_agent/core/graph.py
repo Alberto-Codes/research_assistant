@@ -67,7 +67,7 @@ def get_gemini_agent_graph(dependencies: Optional[HelloWorldDependencies] = None
         A configured Graph instance.
     """
     # Create default dependencies if none are provided
-    deps = dependencies or HelloWorldDependencies(use_gemini=True)
+    deps = dependencies or HelloWorldDependencies()
 
     # Define our graph with nodes and dependencies
     graph = Graph(
@@ -144,7 +144,7 @@ async def run_gemini_agent_graph(
         state = MyState(user_prompt=user_prompt)
 
         # Create dependencies if none are provided
-        deps = dependencies or HelloWorldDependencies(use_gemini=True)
+        deps = dependencies or HelloWorldDependencies()
 
         # Get the graph
         graph = get_gemini_agent_graph()

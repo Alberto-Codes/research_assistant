@@ -102,28 +102,11 @@ async def main() -> None:
 
     try:
         if args.command == "gemini":
-            # Check for deprecated mock flag
-            use_mock_gemini = False
-            if hasattr(args, "use_mock_gemini") and args.use_mock_gemini:
-                warnings.warn(
-                    "The --use-mock-gemini flag is deprecated and will be removed in a future version. "
-                    "For testing, use pytest fixtures instead.",
-                    DeprecationWarning,
-                )
-                print(
-                    "\nWARNING: The --use-mock-gemini flag is deprecated. For proper testing, "
-                    "use pytest fixtures and mocks instead."
-                )
-                use_mock_gemini = True
-
             # Run the Gemini agent
-            state = await generate_ai_response(
-                user_prompt=args.prompt, project_id=args.project_id, use_mock_gemini=use_mock_gemini
-            )
+            state = await generate_ai_response(user_prompt=args.prompt, project_id=args.project_id)
         else:  # Default to hello command
             # Run the Hello World graph
             state = await generate_hello_world(
-                use_custom_llm=args.use_custom_llm if hasattr(args, "use_custom_llm") else False,
                 prefix=args.prefix if hasattr(args, "prefix") else None,
             )
 
