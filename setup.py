@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # Read version from __init__.py
 with open("src/__init__.py", "r") as f:
     for line in f:
         if line.startswith("__version__"):
-            version = line.split("=")[1].strip().strip('"\'')
+            version = line.split("=")[1].strip().strip("\"'")
             break
     else:
         version = "0.1.0"  # Default if version not found
@@ -52,4 +52,4 @@ setup(
             "research_agent=hello_world.cli.commands:cli_entry",
         ],
     },
-) 
+)

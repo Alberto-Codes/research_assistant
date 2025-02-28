@@ -5,19 +5,24 @@ This module tests the functionality of the GraphDependencies class and
 related components, including the LLM client implementations.
 """
 
-import pytest
 import asyncio
 from typing import Protocol
 
-from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies, LLMClient, MockLLMClient
+import pytest
+
+from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
+from hello_world.core.dependencies import (
+    LLMClient,
+    MockLLMClient,
+)
 
 
 class CustomTestLLMClient:
     """A custom test LLM client implementation."""
-    
+
     def __init__(self, prefix="Custom"):
         self.prefix = prefix
-    
+
     async def generate_text(self, prompt: str) -> str:
         """Generate text with a custom prefix."""
         if "hello" in prompt.lower():
@@ -32,12 +37,12 @@ async def test_mock_llm_client():
     """Test that the MockLLMClient generates the expected responses."""
     # Arrange
     client = MockLLMClient()
-    
+
     # Act
     hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
     world_response = await client.generate_text("Generate a noun like 'World'")
     other_response = await client.generate_text("Generate something else")
-    
+
     # Assert
     assert hello_response == "Hello"
     assert world_response == "World"
@@ -49,11 +54,11 @@ async def test_custom_llm_client():
     """Test that a custom LLM client implementation works correctly."""
     # Arrange
     client = CustomTestLLMClient(prefix="Test")
-    
+
     # Act
     hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
     world_response = await client.generate_text("Generate a noun like 'World'")
-    
+
     # Assert
     assert hello_response == "Test Hello"
     assert world_response == "Test World"
@@ -64,7 +69,7 @@ async def test_graph_dependencies_default_init():
     """Test that GraphDependencies initializes with a default MockLLMClient."""
     # Arrange & Act
     deps = GraphDependencies()
-    
+
     # Assert
     assert deps.llm_client is not None
     assert isinstance(deps.llm_client, MockLLMClient)
@@ -75,13 +80,13 @@ async def test_graph_dependencies_custom_client():
     """Test that GraphDependencies can be initialized with a custom LLM client."""
     # Arrange
     custom_client = CustomTestLLMClient()
-    
+
     # Act
     deps = GraphDependencies(llm_client=custom_client)
-    
+
     # Assert
     assert deps.llm_client is custom_client
-    
+
     # Verify it works through the dependencies
     hello_response = await deps.llm_client.generate_text("Generate a greeting word like 'Hello'")
-    assert hello_response == "Custom Hello" 
+    assert hello_response == "Custom Hello"

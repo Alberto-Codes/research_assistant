@@ -5,13 +5,14 @@ This module tests the command-line interface functionality for the Hello World a
 including argument parsing, execution, and output handling.
 """
 
-import pytest
 import asyncio
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import ANY, MagicMock, patch
 
-from hello_world.core.state import MyState
+import pytest
+
 from hello_world.core.graph import GraphRunResult
-from hello_world.ui.cli import main, parse_args, CustomLLMClient
+from hello_world.core.state import MyState
+from hello_world.ui.cli import CustomLLMClient, main, parse_args
 
 
 @pytest.mark.asyncio
@@ -19,12 +20,12 @@ async def test_custom_llm_client():
     """Test that the CustomLLMClient generates expected responses."""
     # Arrange
     client = CustomLLMClient()
-    
+
     # Act
     hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
     world_response = await client.generate_text("Generate a noun like 'World'")
     other_response = await client.generate_text("Generate something else")
-    
+
     # Assert
     assert hello_response == "Hello"
     assert world_response == "World"
@@ -36,11 +37,11 @@ async def test_custom_llm_client_with_prefix():
     """Test that the CustomLLMClient respects the prefix."""
     # Arrange
     client = CustomLLMClient(prefix="Test")
-    
+
     # Act
     hello_response = await client.generate_text("Generate a greeting word like 'Hello'")
     world_response = await client.generate_text("Generate a noun like 'World'")
-    
+
     # Assert
     assert hello_response == "Test Hello"
     assert world_response == "Test World"
@@ -59,13 +60,13 @@ async def test_main_with_default_args(mock_parse_args, mock_display_results, moc
     mock_args.prefix = ""
     mock_args.use_custom_llm = False
     mock_parse_args.return_value = mock_args
-    
+
     mock_result = ("Hello World!", MyState(), [])
     mock_run_graph.return_value = mock_result
-    
+
     # Act
     await main()
-    
+
     # Assert
     mock_run_graph.assert_called_once()
     assert mock_run_graph.call_args[0][0].hello_text == ""  # Initial state
@@ -85,24 +86,24 @@ async def test_main_with_custom_args(mock_parse_args, mock_display_results, mock
     mock_args.prefix = "AI"
     mock_args.use_custom_llm = True
     mock_parse_args.return_value = mock_args
-    
+
     mock_result = ("AI Custom Hello AI Custom World!", MyState(), [])
     mock_run_graph.return_value = mock_result
-    
+
     # Act
     await main()
-    
+
     # Assert
     mock_run_graph.assert_called_once()
-    
+
     # Check that initial state was set correctly
     assert mock_run_graph.call_args[0][0].hello_text == "Custom Hello"
     assert mock_run_graph.call_args[0][0].world_text == "Custom World"
-    
+
     # Check that dependencies were created with custom LLM client
     assert mock_run_graph.call_args[0][1] is not None
     assert isinstance(mock_run_graph.call_args[0][1].llm_client, CustomLLMClient)
-    
+
 
 def test_cli_entry():
     """Test that cli_entry correctly calls asyncio.run with main."""
@@ -111,6 +112,6 @@ def test_cli_entry():
         with patch("src.main.main") as mock_main:
             # Act
             parse_args()
-            
+
             # Assert
-            mock_asyncio_run.assert_called_once_with(ANY)  # We can't check exact coroutine equality 
+            mock_asyncio_run.assert_called_once_with(ANY)  # We can't check exact coroutine equality

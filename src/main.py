@@ -23,10 +23,10 @@ from typing import List, Optional
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     """
     Parse command-line arguments for the application.
-    
+
     Args:
         args: Command-line arguments to parse. Uses sys.argv if None.
-        
+
     Returns:
         Parsed arguments.
     """
@@ -34,16 +34,16 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
         description="Hello World Graph Application",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    
+
     # Check if the first argument is 'cli' or 'ui'
-    if args and len(args) > 0 and args[0] in ['cli', 'ui']:
+    if args and len(args) > 0 and args[0] in ["cli", "ui"]:
         # New-style command-line arguments with subcommands
         subparsers = parser.add_subparsers(
             dest="interface",
             help="Interface to use",
             required=True,
         )
-        
+
         # CLI interface
         cli_parser = subparsers.add_parser(
             "cli",
@@ -60,7 +60,7 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             action="store_true",
             help="Use the custom LLM client",
         )
-        
+
         # Streamlit interface
         streamlit_parser = subparsers.add_parser(
             "ui",
@@ -75,51 +75,51 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     else:
         # Old-style command-line arguments (for backward compatibility)
         parser.add_argument(
-            '--prefix',
+            "--prefix",
             type=str,
             default="",
             help="Prefix to add to LLM responses",
         )
         parser.add_argument(
-            '--use-custom-llm',
-            action='store_true',
+            "--use-custom-llm",
+            action="store_true",
             help="Use the custom LLM client",
         )
         # Hidden argument for interface, defaulting to 'cli'
         parser.add_argument(
-            '--interface',
+            "--interface",
             type=str,
             default="cli",
             help=argparse.SUPPRESS,
         )
-    
+
     return parser.parse_args(args)
 
 
 def run_cli(args: argparse.Namespace) -> None:
     """
     Run the CLI interface.
-    
+
     Args:
         args: Parsed command-line arguments.
     """
     # Import the CLI entry point
     from hello_world.cli.commands import cli_entry
-    
+
     # Set the args in sys.argv for the CLI to parse
     cli_args = []
     if args.use_custom_llm:
         cli_args.append("--use-custom-llm")
     if args.prefix:
         cli_args.extend(["--prefix", args.prefix])
-    
+
     # Save the original argv
     original_argv = sys.argv.copy()
-    
+
     try:
         # Replace argv with our args
         sys.argv = [sys.argv[0]] + cli_args
-        
+
         # Run the CLI
         cli_entry()
     finally:
@@ -130,14 +130,14 @@ def run_cli(args: argparse.Namespace) -> None:
 def run_streamlit(args: argparse.Namespace) -> None:
     """
     Run the Streamlit interface.
-    
+
     Args:
         args: Parsed command-line arguments.
     """
     # Get the path to the Streamlit app
     current_dir = os.path.dirname(os.path.abspath(__file__))
     app_path = os.path.join(current_dir, "hello_world", "ui", "streamlit", "app.py")
-    
+
     # Run Streamlit using subprocess
     cmd = [
         "streamlit",
@@ -146,7 +146,7 @@ def run_streamlit(args: argparse.Namespace) -> None:
         "--server.port",
         str(getattr(args, "port", 8501)),
     ]
-    
+
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
@@ -159,7 +159,7 @@ def run_streamlit(args: argparse.Namespace) -> None:
 def main() -> None:
     """Main entry point for the application."""
     args = parse_args()
-    
+
     if args.interface == "cli":
         run_cli(args)
     elif args.interface == "ui":
