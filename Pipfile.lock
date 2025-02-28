@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "254cd39a69f4d54127112dc850094ac70a656978d722ef1232403015785ef6b6"
+            "sha256": "19885777a6fa8476f56238b0719766272c0f1a3865339415c60a0b653f5f206f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -270,6 +270,10 @@
             ],
             "markers": "python_version >= '3.7'",
             "version": "==0.14.0"
+        },
+        "hello-pydantic-graph": {
+            "editable": true,
+            "file": "."
         },
         "httpcore": {
             "hashes": [

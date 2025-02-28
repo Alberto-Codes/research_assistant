@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pydantic-ai = "*"
 pydantic-graph = "*"
+hello-pydantic-graph = {file = ".", editable = true}
 
 [dev-packages]
 black = "*"
