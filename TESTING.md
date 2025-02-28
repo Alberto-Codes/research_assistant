@@ -14,14 +14,14 @@ We use pytest as our primary testing framework. The project includes several typ
 
 ### 2. Mock vs. Real Testing
 
-#### Deprecated Approach (Avoid):
+#### Deprecated Approach (Removed):
 
-Previously, the codebase included a `MockGeminiLLMClient` class directly in the production code. This approach had several downsides:
+Previously, the codebase included mock client classes directly in the production code and flags like `--use-mock-gemini`. These approaches have been completely removed from the project as they:
 - Mixed production and testing code
 - Required maintaining mock implementations in production code
 - Created dependencies on testing-specific code in the production environment
 
-#### Recommended Approach:
+#### Current Approach:
 
 Now, we use pytest's built-in mocking capabilities:
 1. Create proper test fixtures in test files
@@ -118,7 +118,7 @@ def mock_gemini_with_monkeypatch(monkeypatch):
             return "Mocked response"
     
     # Replace the real class with the mock
-    monkeypatch.setattr("hello_world.core.dependencies.GeminiLLMClient", MockGemini)
+    monkeypatch.setattr("research_agent.core.dependencies.GeminiLLMClient", MockGemini)
     return MockGemini()
 ```
 
@@ -166,7 +166,7 @@ async def test_gemini_workflow():
     mock_llm = MockLLM(response="AI response to test prompt")
     
     # Create dependencies with mock
-    deps = HelloWorldDependencies(use_gemini=True)
+    deps = HelloWorldDependencies()
     deps.llm_client = mock_llm
     
     # Run the workflow
@@ -179,10 +179,32 @@ async def test_gemini_workflow():
     assert state.ai_response == "AI response to test prompt"
 ```
 
-## Transition Plan
+## Testing the Gemini Chat UI
 
-If you need to use the deprecated `--use-mock-gemini` flag temporarily:
+For testing the Streamlit-based Gemini Chat UI, we recommend:
 
-1. The flag will show deprecation warnings
-2. As soon as possible, update your tests to use proper pytest fixtures
-3. The mock implementation will be fully removed in a future version 
+1. **Mocking the streaming response**:
+   ```python
+   @pytest.fixture
+   def mock_streaming_client():
+       async def mock_generate_streaming_response(*args, **kwargs):
+           # Return a mock async generator
+           async def mock_generator():
+               for chunk in ["Hello", " there", "!"];
+                   yield chunk
+           return mock_generator()
+       
+       mock = AsyncMock()
+       mock.generate_streaming_response = mock_generate_streaming_response
+       return mock
+   ```
+
+2. **Testing the UI components separately** from the actual Gemini client integration
+
+3. **Creating integration tests** that test the full UI experience but can be skipped in CI environments
+
+```python
+@pytest.mark.skipif(os.environ.get("CI") == "true", reason="Skip in CI environment")
+def test_streamlit_ui():
+    # Test code here
+``` 

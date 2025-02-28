@@ -1,9 +1,9 @@
 """
-Dependencies for the Hello World graph.
+Dependencies for the Research Agent graph.
 
 This module defines the dependencies that can be injected into nodes,
-including the LLMClient protocol and its implementations. It uses the
-dependency injection pattern to allow for flexible component swapping.
+including the LLMClient protocol and its implementations using the
+Gemini model via Pydantic-AI.
 """
 
 from dataclasses import dataclass
@@ -98,8 +98,8 @@ class GeminiLLMClient:
 
 
 @dataclass
-class HelloWorldDependencies:
-    """Container for all dependencies needed by the Hello World graph nodes.
+class GeminiDependencies:
+    """Container for all dependencies needed by the Research Agent graph nodes.
 
     This class centralizes all external dependencies required by the graph,
     making it easier to provide different implementations for testing,

@@ -61,16 +61,39 @@ gcloud config set project YOUR_PROJECT_ID
 ### Command Line
 
 ```bash
-python -m hello_world.cli.commands gemini --prompt "Your prompt here"
+python -m research_agent.cli.commands gemini --prompt "Your prompt here"
 ```
 
 Optional parameters:
 - `--project-id PROJECT_ID`: Specify a Google Cloud project ID
 
+### Interactive Chat UI
+
+The project provides a fully featured chat interface for interacting with Gemini models:
+
+```bash
+# Launch the Gemini Chat UI
+python -m research_agent.ui.cli_entry --app gemini
+```
+
+Or if you've installed the package:
+
+```bash
+research_agent --app gemini
+```
+
+Features of the Gemini Chat UI:
+- Streaming responses for a natural conversation experience
+- Custom system prompt configuration
+- Conversation memory that can be toggled on/off
+- Response metrics and debugging information
+- Conversation saving functionality
+- Optimized async implementation with reliable event loop handling
+
 ### Programmatic Usage
 
 ```python
-from hello_world.api.services import generate_ai_response
+from research_agent.api.services import generate_ai_response
 
 # Generate a response
 response = await generate_ai_response(
@@ -121,4 +144,14 @@ Authentication errors may occur if:
 2. Your account doesn't have appropriate permissions
 3. Your service account credentials are invalid
 
-Check your permissions and API status in the Google Cloud Console. 
+Check your permissions and API status in the Google Cloud Console.
+
+### Event Loop Issues
+
+If you encounter event loop errors when using the Gemini Chat UI:
+
+1. Make sure you're using the latest version of the package
+2. The application now uses nest_asyncio to handle nested event loops properly
+3. The streaming implementation has been completely refactored for reliability
+
+If issues persist, please report them with specific error messages. 

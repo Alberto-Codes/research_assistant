@@ -60,7 +60,13 @@ flowchart TD
    - Provides real-time feedback and visualizations
    - More user-friendly for non-technical users
 
-3. **API Layer**
+3. **Gemini Chat UI**
+   - Interactive chat interface for conversing with Gemini models
+   - Features streaming responses and conversation memory
+   - Customizable system prompts and chat settings
+   - Built on Streamlit for ease of use
+
+4. **API Layer**
    - Service functions that other interfaces can use
    - Abstracts the core functionality for reuse
 
@@ -75,6 +81,13 @@ flowchart TD
    - **PrintNode** outputs the final result
 4. Each node updates the state and passes it to the next node
 5. When the workflow completes, the result is returned to the user
+
+For the Gemini Chat flow:
+1. User inputs a message through the Chat UI
+2. The message is processed by the GeminiLLMClient
+3. A streaming response is generated in real-time
+4. The response is displayed to the user with a typing animation
+5. The conversation history is updated for future context
 
 ## Extension Points
 
@@ -116,15 +129,40 @@ The Research Agent architecture follows these key principles:
 
 - **Python**: Core programming language
 - **Pydantic-Graph**: Framework for defining and executing node-based workflows
+- **Pydantic-AI**: Library for LLM interactions and model integration
 - **Streamlit**: Framework for building interactive web interfaces
+- **Google Vertex AI**: Provider for Gemini language models
 - **Pytest**: Testing framework
 - **Various Code Quality Tools**: Black, isort, flake8, pylint, mypy, bandit
+
+## Current Project Structure
+
+```
+src/
+├── __init__.py
+├── research_agent/
+│   ├── __init__.py
+│   ├── core/
+│   │   ├── dependencies.py  # Dependency injection definitions
+│   │   ├── graph.py         # Graph definition
+│   │   ├── nodes.py         # Node definitions
+│   │   └── state.py         # State class definition
+│   ├── api/
+│   │   └── services.py      # Service functions for interfaces
+│   ├── cli/
+│   │   └── commands.py      # CLI functionality
+│   └── ui/
+│       ├── streamlit/       # Streamlit web UI
+│       │   ├── app.py       # Hello World Streamlit application
+│       │   └── gemini_chat.py # Gemini Chat interface
+│       └── cli_entry.py     # Entry point for UI applications
+```
 
 ## Future Architecture Evolution
 
 As the Research Agent evolves, we anticipate these architectural changes:
 
-1. Integration with real LLM services through API clients
+1. Integration with additional LLM services beyond Gemini
 2. More sophisticated node types for advanced research tasks
 3. Persistent storage for research results and session history
 4. A graph visualization component to help users understand workflows

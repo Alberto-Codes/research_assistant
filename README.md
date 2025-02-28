@@ -50,6 +50,23 @@ Options:
 - `--project-id`: Google Cloud project ID (optional)
 - `--use-mock-gemini`: Use the mock Gemini client for local testing without authentication
 
+### Gemini Chat UI
+
+For an interactive chat experience with Gemini models, you can use the Streamlit-based chat interface:
+
+```
+streamlit run src/research_agent/ui/streamlit/gemini_chat.py
+```
+
+This opens a web interface where you can:
+- Chat with the Gemini model in real-time with streaming responses
+- Configure system prompts that define the assistant's behavior
+- Toggle conversation memory on/off
+- View detailed response metrics
+- Save your conversation history as JSON files
+
+The chat UI features a completely refactored async implementation that ensures reliable streaming and supports multi-turn conversations. Recent improvements include enhanced error handling and robust event loop management.
+
 ### Development Example
 
 For development and testing without setting up Google Cloud authentication, you can use the provided example:

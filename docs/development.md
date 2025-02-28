@@ -41,7 +41,7 @@ The project is organized as follows:
 
 ```
 src/
-├── hello_world/             # Package for the Hello World example
+├── research_agent/             # Main package
 │   ├── core/                # Core business logic
 │   │   ├── dependencies.py  # Dependency injection definitions
 │   │   ├── graph.py         # Graph definition
@@ -52,10 +52,12 @@ src/
 │   ├── cli/                 # Command-line interface
 │   │   └── commands.py      # CLI functionality
 │   └── ui/                  # User interface layer
-│       └── streamlit/       # Streamlit web UI
-│           └── app.py       # Streamlit application
+│       ├── streamlit/       # Streamlit web UI
+│       │   ├── app.py       # Hello World Streamlit application
+│       │   └── gemini_chat.py # Gemini Chat interface
+│       └── cli_entry.py     # Entry point for UI applications
 tests/                       # Test directory
-├── hello_world/             # Tests for the hello_world package
+├── research_agent/             # Tests for the research_agent package
 │   ├── test_nodes.py        # Tests for nodes
 │   ├── test_graph.py        # Tests for graph
 │   └── ...                  # Other test files
@@ -106,7 +108,7 @@ This will run all formatters, linters, security checks, tests, and documentation
 
 2. **Run specific tests**:
    ```bash
-   pipenv run pytest tests/hello_world/test_nodes.py -v
+   pipenv run pytest tests/research_agent/test_nodes.py -v
    ```
 
 3. **Add new tests**:
@@ -158,7 +160,7 @@ All code must meet the following standards:
    ```
 
 2. **Add tests for the node**:
-   - Create tests in `tests/hello_world/test_nodes.py`
+   - Create tests in `tests/research_agent/test_nodes.py`
    - Test the node's behavior in isolation
 
 ### Creating a New Graph
@@ -177,7 +179,7 @@ All code must meet the following standards:
    ```
 
 2. **Add tests for the graph**:
-   - Create tests in `tests/hello_world/test_graph.py`
+   - Create tests in `tests/research_agent/test_graph.py`
    - Test that the graph executes as expected
 
 ### Adding Dependencies
@@ -198,8 +200,48 @@ All code must meet the following standards:
    - Add the dependency to the `HelloWorldDependencies` class
 
 3. **Add tests for the dependency**:
-   - Create tests in `tests/hello_world/test_dependencies.py`
+   - Create tests in `tests/research_agent/test_dependencies.py`
    - Test the dependency's behavior
+
+## Working with the Gemini Chat UI
+
+The Gemini Chat UI is a Streamlit-based interface for interacting with Google's Gemini models. Here's how to work with it:
+
+### Running the Gemini Chat UI
+
+```bash
+# Using the CLI entry point
+python -m research_agent.ui.cli_entry --app gemini
+
+# Or directly running the Streamlit script
+streamlit run src/research_agent/ui/streamlit/gemini_chat.py
+```
+
+### Key Components
+
+1. **gemini_chat.py**: Main UI file that handles:
+   - User interface rendering
+   - Message handling and history management
+   - Integration with the GeminiLLMClient
+
+2. **Streaming Implementation**: The UI implements streaming responses using:
+   - Async context managers
+   - Proper event loop handling with nest_asyncio
+   - Chunked text display with typing animation
+
+3. **Configuration**: The UI allows customization of:
+   - System prompts
+   - Chat memory behavior
+   - Response parameters
+
+### Development Guidelines
+
+When working on the Gemini Chat UI:
+
+1. **Keep async code clean**: Avoid unnecessary event loop manipulation
+2. **Use proper error handling**: Catch and display errors appropriately
+3. **Test streaming functionality**: Ensure responses stream properly without errors
+4. **Maintain responsive UI**: Keep the interface responsive during model calls
 
 ## Documentation
 

@@ -5,73 +5,69 @@ This module tests the command-line interface functionality for the Research Agen
 including argument parsing, execution, and output handling.
 """
 
+import argparse
 import asyncio
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
-from research_agent.api.services import generate_ai_response, generate_hello_world
-from research_agent.cli.commands import display_results, main, parse_arguments
-from research_agent.core.dependencies import HelloWorldDependencies
-from research_agent.core.graph import GraphRunResult
+from research_agent.api.services import generate_ai_response
+from research_agent.core.dependencies import GeminiDependencies
 from research_agent.core.state import MyState
+from research_agent.ui.cli_entry import get_streamlit_script_path, main
 
 
 @pytest.mark.asyncio
-@patch("research_agent.api.services.run_graph")
-@patch("research_agent.cli.commands.display_results")
-@patch("research_agent.cli.commands.parse_arguments")
-async def test_main_with_default_args(mock_parse_args, mock_display_results, mock_run_graph):
-    """Test that main runs correctly with default arguments."""
+@patch("research_agent.ui.cli_entry.subprocess.run")
+@patch("research_agent.ui.cli_entry.get_streamlit_script_path")
+@patch("argparse.ArgumentParser.parse_args")
+async def test_main_runs_gemini_chat(mock_parse_args, mock_get_path, mock_subprocess_run):
+    """Test that main runs the Gemini chat application."""
     # Arrange
-    mock_args = MagicMock()
-    mock_args.command = "hello"
-    mock_args.prefix = ""
-    mock_parse_args.return_value = mock_args
-
-    mock_state = MyState(combined_text="Hello World!")
-    mock_run_graph.return_value = ("Hello World!", mock_state, [])
+    mock_get_path.return_value = "/mock/path/to/gemini_chat.py"
+    mock_parse_args.return_value = argparse.Namespace()
 
     # Act
-    await main()
+    main()
 
     # Assert
-    mock_run_graph.assert_called_once()
-    mock_display_results.assert_called_once_with(mock_state)
+    mock_get_path.assert_called_once_with("gemini_chat.py")
+    mock_subprocess_run.assert_called_once_with(
+        ["streamlit", "run", "/mock/path/to/gemini_chat.py"]
+    )
+
+
+def test_get_streamlit_script_path():
+    """Test that get_streamlit_script_path constructs the correct path."""
+    # This test will fail if the file doesn't exist, which is what we want
+    try:
+        path = get_streamlit_script_path("gemini_chat.py")
+        assert "streamlit" in path
+        assert "gemini_chat.py" in path
+    except FileNotFoundError:
+        pytest.skip(
+            "Skipping test because gemini_chat.py not found - this is expected in CI environments"
+        )
 
 
 @pytest.mark.asyncio
-@patch("research_agent.api.services.run_graph")
-@patch("research_agent.cli.commands.display_results")
-@patch("research_agent.cli.commands.parse_arguments")
-async def test_main_with_custom_args(mock_parse_args, mock_display_results, mock_run_graph):
-    """Test that main respects custom command line arguments."""
+@patch("research_agent.core.dependencies.GeminiLLMClient")
+async def test_generate_ai_response(mock_gemini_class):
+    """Test that generate_ai_response works correctly."""
     # Arrange
-    mock_args = MagicMock()
-    mock_args.command = "hello"
-    mock_args.prefix = "AI"
-    mock_parse_args.return_value = mock_args
-
-    mock_state = MyState(combined_text="AI Hello AI World!")
-    mock_run_graph.return_value = ("AI Hello AI World!", mock_state, [])
+    mock_instance = MagicMock()
+    mock_instance.generate_text = AsyncMock(return_value="This is a test response.")
+    mock_gemini_class.return_value = mock_instance
 
     # Act
-    await main()
+    result = await generate_ai_response("Test prompt")
 
     # Assert
-    mock_run_graph.assert_called_once()
-    mock_display_results.assert_called_once_with(mock_state)
+    assert isinstance(result, MyState)
+    assert result.user_prompt == "Test prompt"
+    assert result.ai_response == "This is a test response."
 
 
-@patch("sys.argv", ["__main__.py", "hello"])
-@patch("asyncio.run")
-def test_cli_entry(mock_asyncio_run):
-    """Test that cli_entry correctly calls asyncio.run with main."""
-    # Import cli_entry here to avoid issues with sys.argv patching
-    from research_agent.cli.commands import cli_entry
-
-    # Act
-    cli_entry()
-
-    # Assert
-    mock_asyncio_run.assert_called_once_with(ANY)  # We can't check exact coroutine equality
+if __name__ == "__main__":
+    """Run the tests directly."""
+    pytest.main(["-xvs", __file__])

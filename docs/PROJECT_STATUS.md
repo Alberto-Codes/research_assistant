@@ -26,13 +26,21 @@ Think of it as a pipeline where information flows through different stations (or
 ### Recent Improvements
 
 - **Package Renaming**: Successfully renamed the package from `hello_world` to `research_agent`, updating all references and ensuring compatibility.
-- **Gemini Chat Interface**: Implemented a fully functional chat interface for interacting with Google's Gemini LLM.
+- **Fixed pydantic-graph integration**: Resolved several critical issues with the Graph implementation:
+  - Corrected Graph initialization by removing invalid parameters
+  - Updated dependency injection to follow recommended patterns
+  - Fixed result handling to properly access GraphRunResult attributes
+  - Improved test mocking to prevent SystemExit exceptions
+  - All tests now pass successfully
+- **Enhanced Gemini Chat Interface**: Implemented a fully functional chat interface for interacting with Google's Gemini LLM.
   - Streaming responses for real-time interaction
   - Custom system prompt configuration
   - Conversation memory management
   - Chat history saving and export
   - Detailed response metrics and debugging information
-  - Robust async operation handling with nest_asyncio
+  - Completely refactored async implementation for reliable streaming
+  - Fixed event loop handling to support multi-turn conversations
+  - Enhanced error handling and recovery
 - **Fixed entry point issues**: Corrected the entry point in `setup.py` to use `cli_entry` instead of `main` for proper async execution.
 - **Resolved node implementation conflicts**: Removed duplicate `HelloNode` class definition in `services.py` that was causing conflicts.
 - **Enhanced error detection**: Added validation in the `_measure_execution_time` decorator to catch invalid node return types.
@@ -148,8 +156,8 @@ If you're interested in trying the Research Agent:
 
 ## Project Health
 
-The project is in a **stable and functioning state**. The codebase follows best practices for Python development, and we're committed to maintaining high code quality standards. All tests are currently passing, and the system is ready for further enhancement beyond the "Hello World" example.
+The project is in a **stable and functioning state**. The codebase follows best practices for Python development, and we're committed to maintaining high code quality standards. All tests are now passing with the recent pydantic-graph integration fixes, and the system is ready for further enhancement beyond the "Hello World" example.
 
 The latest build (`research_agent-0.1.0-py3-none-any.whl`) is available and functioning correctly with all recent fixes applied.
 
-The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. The codebase has been streamlined to use exclusively the GeminiLLMClient, removing unnecessary client implementations and simplifying the architecture. 
+The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. The interface has been significantly improved with a complete rewrite of the streaming implementation, fixing event loop issues that previously prevented multi-turn conversations. The codebase has been streamlined to use exclusively the GeminiLLMClient, removing unnecessary client implementations and simplifying the architecture. The Graph implementation has been properly aligned with pydantic-graph's requirements, ensuring a solid foundation for future development of more complex research workflows. 

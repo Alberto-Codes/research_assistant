@@ -1,8 +1,8 @@
 """
-Command-line entry points for the Research Agent application.
+Command-line entry point for the Research Agent application.
 
-This module provides command-line entry points for running the
-Research Agent application and its variants like the Gemini chat.
+This module provides the command-line entry point for running the
+Research Agent's Gemini chat interface.
 """
 
 import argparse
@@ -36,12 +36,6 @@ def get_streamlit_script_path(script_name: str) -> str:
     return str(script_path)
 
 
-def run_standard_app():
-    """Run the standard 'Hello World' Streamlit app."""
-    streamlit_path = get_streamlit_script_path("app.py")
-    subprocess.run(["streamlit", "run", streamlit_path])
-
-
 def run_gemini_chat():
     """Run the Gemini chat Streamlit app."""
     streamlit_path = get_streamlit_script_path("gemini_chat.py")
@@ -49,30 +43,18 @@ def run_gemini_chat():
 
 
 def main():
-    """Command-line entry point for the Hello World application.
+    """Command-line entry point for the Research Agent application.
 
-    This function parses command-line arguments and runs the appropriate
-    Streamlit application based on the user's selection.
+    This function parses command-line arguments and runs the
+    Gemini chat Streamlit application.
     """
-    parser = argparse.ArgumentParser(description="Run the Hello World application or its variants.")
-
-    # Add an application selector
-    parser.add_argument(
-        "--app",
-        "-a",
-        choices=["default", "gemini"],
-        default="default",
-        help="Select which application to run: default (Hello World) or gemini (Gemini Chat)",
-    )
+    parser = argparse.ArgumentParser(description="Run the Research Agent's Gemini chat interface.")
 
     # Parse the arguments
     args = parser.parse_args()
 
-    # Run the selected application
-    if args.app == "gemini":
-        run_gemini_chat()
-    else:  # default
-        run_standard_app()
+    # Run the Gemini chat application
+    run_gemini_chat()
 
 
 if __name__ == "__main__":

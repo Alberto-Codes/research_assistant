@@ -1,125 +1,107 @@
 """
 Tests for the node implementations.
 
-This module contains tests for each of the node classes
-used in the Research Agent graph.
+This module contains tests for the GeminiAgentNode used in the Research Agent graph.
 """
 
 import asyncio
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pydantic_graph import End
+from pydantic_graph.nodes import GraphRunContext
 
-from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
-from research_agent.core.nodes import CombineNode, HelloNode, PrintNode, WorldNode
+from research_agent.core.dependencies import GeminiDependencies, LLMClient
+from research_agent.core.nodes import GeminiAgentNode
 from research_agent.core.state import MyState
 
 
-@pytest.mark.asyncio
-async def test_hello_node(initial_state, test_dependencies, test_llm_client):
-    """Test that the HelloNode correctly updates the state.
+@pytest.fixture
+def mock_gemini_for_node():
+    """Create a mock Gemini client for testing nodes."""
+    mock = AsyncMock()
+    mock.generate_text = AsyncMock(return_value="This is a mocked response for the node test.")
+    return mock
 
-    Args:
-        initial_state: A clean MyState instance.
-        test_dependencies: Dependencies with a test LLM client.
-        test_llm_client: The test LLM client that tracks calls.
 
-    Verifies:
-        - The hello_text is set to the expected value
-        - The next node is a WorldNode
-        - The LLM client was called with a prompt containing "hello"
-    """
-    # Arrange
-    node = HelloNode()
-    ctx = type("GraphRunContext", (), {"state": initial_state, "deps": test_dependencies})()
-
-    # Act
-    next_node = await node.run(ctx)
-
-    # Assert
-    assert initial_state.hello_text == "Test Hello"
-    assert isinstance(next_node, WorldNode)
-    assert "hello" in test_llm_client.calls[0].lower()
+@pytest.fixture
+def state_with_prompt():
+    """Create a state with a user prompt for testing."""
+    return MyState(user_prompt="What is the meaning of life?")
 
 
 @pytest.mark.asyncio
-async def test_world_node(initial_state, test_dependencies, test_llm_client):
-    """Test that the WorldNode correctly updates the state.
+async def test_gemini_agent_node_with_mock(mock_gemini_for_node, state_with_prompt):
+    """Test the GeminiAgentNode using a mock for the generate_text method."""
+    # Create the node
+    node = GeminiAgentNode()
 
-    Args:
-        initial_state: A clean MyState instance.
-        test_dependencies: Dependencies with a test LLM client.
-        test_llm_client: The test LLM client that tracks calls.
+    # Create the dependencies with our mock client
+    deps = GeminiDependencies(llm_client=mock_gemini_for_node)
 
-    Verifies:
-        - The world_text is set to the expected value
-        - The next node is a CombineNode
-        - The LLM client was called with a prompt containing "world"
-    """
-    # Arrange
-    initial_state.hello_text = "Test Hello"  # Set by previous node
-    node = WorldNode()
-    ctx = type("GraphRunContext", (), {"state": initial_state, "deps": test_dependencies})()
+    # Create a run context
+    ctx = GraphRunContext(state=state_with_prompt, deps=deps)
 
-    # Act
-    next_node = await node.run(ctx)
-
-    # Assert
-    assert initial_state.world_text == "Test World"
-    assert isinstance(next_node, CombineNode)
-    assert "world" in test_llm_client.calls[0].lower()
-
-
-@pytest.mark.asyncio
-async def test_combine_node(initial_state, test_dependencies):
-    """Test that the CombineNode correctly combines the texts.
-
-    Args:
-        initial_state: A clean MyState instance.
-        test_dependencies: Dependencies with a test LLM client.
-
-    Verifies:
-        - The combined_text is set to the expected concatenated value
-        - The next node is a PrintNode
-    """
-    # Arrange
-    initial_state.hello_text = "Test Hello"
-    initial_state.world_text = "Test World"
-    node = CombineNode()
-    ctx = type("GraphRunContext", (), {"state": initial_state, "deps": test_dependencies})()
-
-    # Act
-    next_node = await node.run(ctx)
-
-    # Assert
-    assert initial_state.combined_text == "Test Hello Test World!"
-    assert isinstance(next_node, PrintNode)
-
-
-@pytest.mark.asyncio
-async def test_print_node(initial_state, test_dependencies):
-    """Test that the PrintNode correctly ends the graph.
-
-    Args:
-        initial_state: A clean MyState instance.
-        test_dependencies: Dependencies with a test LLM client.
-
-    Verifies:
-        - The End result contains the expected combined text
-        - The result is an End object with the proper attributes
-    """
-    # Arrange
-    initial_state.hello_text = "Test Hello"
-    initial_state.world_text = "Test World"
-    initial_state.combined_text = "Test Hello Test World!"
-    node = PrintNode()
-    ctx = type("GraphRunContext", (), {"state": initial_state, "deps": test_dependencies})()
-
-    # Act
+    # Run the node
     result = await node.run(ctx)
 
-    # Assert
-    assert result.data == "Test Hello Test World!"
-    # Check that the result is an End instance by checking its type/structure
-    assert hasattr(result, "data"), "Result should have a 'data' attribute"
-    assert type(result).__name__ == "End", "Result should be an End object"
+    # Verify the result is an End node
+    assert isinstance(result, End)
+    assert ctx.state.ai_response == "This is a mocked response for the node test."
+
+    # Verify the AI response was set on the state
+    assert ctx.state.ai_response == "This is a mocked response for the node test."
+
+    # Verify the mock was called with the correct prompt
+    mock_gemini_for_node.generate_text.assert_called_once_with("What is the meaning of life?")
+
+    # Verify the execution history was updated
+    assert len(ctx.state.node_execution_history) == 1
+    assert (
+        "GeminiAgentNode: Generated response to 'What is the meaning of life?'"
+        in ctx.state.node_execution_history[0]
+    )
+
+    # Verify the timing was recorded
+    assert ctx.state.ai_generation_time > 0
+    assert ctx.state.total_time > 0
+
+
+class MockLLM(LLMClient):
+    """A manual implementation of the LLMClient protocol for testing."""
+
+    def __init__(self, response="This is a patched response."):
+        """Initialize with an optional custom response."""
+        self.response = response
+
+    async def generate_text(self, prompt: str) -> str:
+        """Generate text by just returning the preset response."""
+        return self.response
+
+
+@pytest.mark.asyncio
+async def test_gemini_agent_node_with_manual_mock(state_with_prompt):
+    """Test the GeminiAgentNode using a manually created mock implementation."""
+    # Create the node
+    node = GeminiAgentNode()
+
+    # Create the dependencies with our manual mock client
+    deps = GeminiDependencies(llm_client=MockLLM())
+
+    # Create a run context
+    ctx = GraphRunContext(state=state_with_prompt, deps=deps)
+
+    # Run the node
+    result = await node.run(ctx)
+
+    # Verify the result is an End node
+    assert isinstance(result, End)
+    assert ctx.state.ai_response == "This is a patched response."
+
+    # Verify the AI response was set on the state
+    assert ctx.state.ai_response == "This is a patched response."
+
+
+if __name__ == "__main__":
+    """Run the tests directly."""
+    pytest.main(["-xvs", __file__])

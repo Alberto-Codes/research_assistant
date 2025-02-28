@@ -11,10 +11,8 @@ import asyncio
 import pytest
 
 from research_agent.core.dependencies import (
+    GeminiDependencies,
     GeminiLLMClient,
-)
-from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
-from research_agent.core.dependencies import (
     LLMClient,
 )
 from research_agent.core.state import MyState
@@ -39,9 +37,9 @@ def mock_dependencies():
     """Provide mock dependencies with a GeminiLLMClient.
 
     Returns:
-        A GraphDependencies instance configured with a GeminiLLMClient.
+        A GeminiDependencies instance configured with a GeminiLLMClient.
     """
-    return GraphDependencies(llm_client=GeminiLLMClient())
+    return GeminiDependencies(llm_client=GeminiLLMClient())
 
 
 class TestLLMClient:
@@ -51,20 +49,16 @@ class TestLLMClient:
     making it useful for verifying that the correct prompts are used.
 
     Attributes:
-        hello_response: The response to return for hello prompts.
-        world_response: The response to return for world prompts.
         calls: A list tracking all prompts sent to the client.
     """
 
-    def __init__(self, hello_response="Test Hello", world_response="Test World"):
-        """Initialize the test LLM client with predefined responses.
+    def __init__(self, default_response="Test Response"):
+        """Initialize the test LLM client with a default response.
 
         Args:
-            hello_response: The response to return for hello prompts.
-            world_response: The response to return for world prompts.
+            default_response: The default response to return for prompts.
         """
-        self.hello_response = hello_response
-        self.world_response = world_response
+        self.default_response = default_response
         self.calls = []
 
     async def generate_text(self, prompt: str) -> str:
@@ -74,15 +68,10 @@ class TestLLMClient:
             prompt: The text prompt to generate from.
 
         Returns:
-            Predefined responses based on the content of the prompt.
+            Predefined response for the prompt.
         """
         self.calls.append(prompt)
-
-        if "hello" in prompt.lower():
-            return self.hello_response
-        elif "world" in prompt.lower():
-            return self.world_response
-        return "Test Response"
+        return self.default_response
 
 
 @pytest.fixture
@@ -103,6 +92,6 @@ def test_dependencies(test_llm_client):
         test_llm_client: The TestLLMClient instance from the fixture.
 
     Returns:
-        A GraphDependencies instance configured with the TestLLMClient.
+        A GeminiDependencies instance configured with the TestLLMClient.
     """
-    return GraphDependencies(llm_client=test_llm_client)
+    return GeminiDependencies(llm_client=test_llm_client)

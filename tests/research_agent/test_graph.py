@@ -6,112 +6,116 @@ execution with various state and dependency configurations, and result processin
 """
 
 import asyncio
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
+from research_agent.core.dependencies import GeminiDependencies
 from research_agent.core.graph import (
-    GraphRunResult,
     display_results,
+    get_gemini_agent_graph,
+    run_gemini_agent_graph,
 )
-from research_agent.core.graph import get_hello_world_graph as hello_world_graph
-from research_agent.core.graph import (
-    run_graph,
-)
-from research_agent.core.nodes import HelloNode
 from research_agent.core.state import MyState
 
 
-@pytest.mark.asyncio
-async def test_run_graph_default():
-    """Test that the graph runs with default settings."""
-    # Act
-    output, state, history = await run_graph()
+@pytest.fixture
+def mock_gemini_client():
+    """Create a mock Gemini client for testing."""
+    mock = AsyncMock()
+    mock.generate_text = AsyncMock(return_value="This is a test response from the mock.")
+    return mock
 
-    # Assert - we don't check exact output since it varies with the Gemini client
-    assert isinstance(output, str)
+
+@pytest.mark.asyncio
+async def test_run_gemini_agent_graph():
+    """Test that the Gemini agent graph runs with a user prompt."""
+    # Arrange
+    user_prompt = "What is the meaning of life?"
+
+    # Act
+    with patch("research_agent.core.dependencies.GeminiLLMClient") as MockGeminiClass:
+        # Configure the mock
+        mock_instance = AsyncMock()
+        mock_instance.generate_text = AsyncMock(return_value="The meaning of life is 42.")
+        MockGeminiClass.return_value = mock_instance
+
+        # Run the graph
+        result_text, state, errors = await run_gemini_agent_graph(user_prompt)
+
+    # Assert
+    assert result_text == "The meaning of life is 42."
     assert isinstance(state, MyState)
-    assert isinstance(state.hello_text, str) and len(state.hello_text) > 0
-    assert isinstance(state.world_text, str) and len(state.world_text) > 0
-    assert isinstance(state.combined_text, str) and len(state.combined_text) > 0
-    assert len(history) == 5  # Four node steps + end step
+    assert state.user_prompt == user_prompt
+    assert state.ai_response == "The meaning of life is 42."
+    assert state.ai_generation_time > 0
+    assert state.total_time > 0
+    assert len(errors) == 0
 
 
 @pytest.mark.asyncio
-async def test_run_graph_with_initial_state():
-    """Test that the graph respects initial state values."""
+async def test_run_gemini_agent_graph_with_custom_dependencies(mock_gemini_client):
+    """Test that the Gemini agent graph runs with custom dependencies."""
     # Arrange
-    initial_state = MyState(hello_text="Custom Hello")
+    user_prompt = "What is the meaning of life?"
+    dependencies = GeminiDependencies(llm_client=mock_gemini_client)
 
     # Act
-    output, state, history = await run_graph(initial_state=initial_state)
+    result_text, state, errors = await run_gemini_agent_graph(user_prompt, dependencies)
 
     # Assert
-    assert state.hello_text == "Custom Hello"  # Should not be changed
-    assert isinstance(state.world_text, str) and len(state.world_text) > 0
-    assert isinstance(state.combined_text, str) and len(state.combined_text) > 0
-    assert "Custom Hello" in state.combined_text
+    assert result_text == "This is a test response from the mock."
+    assert isinstance(state, MyState)
+    assert state.user_prompt == user_prompt
+    assert state.ai_response == "This is a test response from the mock."
+    assert mock_gemini_client.generate_text.called
+    assert len(errors) == 0
 
 
 @pytest.mark.asyncio
-async def test_run_graph_with_custom_dependencies(test_dependencies, test_llm_client):
-    """Test that the graph works with custom dependencies."""
+async def test_get_gemini_agent_graph():
+    """Test that the Gemini agent graph is created correctly."""
     # Act
-    output, state, history = await run_graph(dependencies=test_dependencies)
+    graph = get_gemini_agent_graph()
 
     # Assert
-    assert output == "Test Hello Test World!"
-    assert state.hello_text == "Test Hello"
-    assert state.world_text == "Test World"
-    assert state.combined_text == "Test Hello Test World!"
-    assert len(test_llm_client.calls) == 2  # Called for hello and world
+    assert graph is not None
+    assert hasattr(graph, "run")
 
 
-@pytest.mark.asyncio
-async def test_graph_with_complete_initial_state():
-    """Test that the graph respects a complete initial state."""
-    # Arrange
-    initial_state = MyState(
-        hello_text="Pre Hello", world_text="Pre World", combined_text="Pre Hello Pre World!"
-    )
+class MockGraphRunResult:
+    """Mock GraphRunResult for testing display_results."""
 
-    # Act
-    output, state, history = await run_graph(initial_state=initial_state)
-
-    # Assert - State values should remain unchanged
-    assert output == "Pre Hello Pre World!"
-    assert state.hello_text == "Pre Hello"
-    assert state.world_text == "Pre World"
-    assert state.combined_text == "Pre Hello Pre World!"
-    assert len(history) == 5  # All nodes + end step
-
-
-class MockGraphRunResult(GraphRunResult):
-    """Mock GraphRunResult for testing."""
-
-    def __init__(self, output, state, history):
-        """Initialize with output, state, and history."""
-        self.output = output
+    def __init__(self, value, state):
+        """Initialize with output and state."""
+        self.output = value
         self.state = state
-        self.history = history
 
 
 def test_display_results(capsys):
-    """Test that display_results formats output correctly."""
+    """Test that display_results outputs the expected information."""
     # Arrange
     state = MyState(
-        hello_text="Test Hello", world_text="Test World", combined_text="Test Hello Test World!"
+        user_prompt="Test prompt",
+        ai_response="Test response",
+        ai_generation_time=0.5,
+        total_time=1.0,
+        node_execution_history=["GeminiAgentNode: Generated response to 'Test prompt'"],
     )
-    history = [object(), object(), object(), object()]  # Dummy objects for history
-    result = MockGraphRunResult("Test Hello Test World!", state, history)
+    result = MockGraphRunResult("Test response", state)
 
     # Act
     display_results(result)
 
     # Assert
     captured = capsys.readouterr()
-    assert "=== Graph Execution Results ===" in captured.out
-    assert "Result: Test Hello Test World!" in captured.out
-    assert "Final state: MyState" in captured.out
-    assert "Node execution history:" in captured.out
+    assert "Result: Test response" in captured.out
+    assert "State: " in captured.out
+    assert "Execution History:" in captured.out
+    assert "GeminiAgentNode: Generated response to 'Test prompt'" in captured.out
+    assert "Total execution time: 1.000 seconds" in captured.out
+
+
+if __name__ == "__main__":
+    """Run the tests directly."""
+    pytest.main(["-xvs", __file__])

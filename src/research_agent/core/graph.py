@@ -1,8 +1,8 @@
 """
-Graph definition for the Hello World example.
+Graph definition for the Research Agent.
 
-This module defines the graph structure for the Hello World application,
-including the nodes and their dependencies.
+This module defines the graph structure for the Research Agent application,
+focusing on the Gemini chat functionality.
 """
 
 from __future__ import annotations
@@ -25,163 +25,108 @@ except ImportError:
         pass
 
 
-from research_agent.core.dependencies import HelloWorldDependencies
-from research_agent.core.nodes import CombineNode, GeminiAgentNode, HelloNode, PrintNode, WorldNode
+from research_agent.core.dependencies import GeminiDependencies
+from research_agent.core.nodes import GeminiAgentNode
 from research_agent.core.state import MyState
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 
-def get_hello_world_graph(dependencies: Optional[HelloWorldDependencies] = None) -> Graph:
+def get_gemini_agent_graph() -> Graph:
     """
-    Get the Hello World graph with optional dependencies.
+    Create a Graph for the Gemini agent.
 
-    Args:
-        dependencies: Optional dependencies to inject into the graph. If not provided,
-                      default dependencies will be used.
+    This function creates a Graph for running a single node that processes
+    a user prompt with the Gemini model.
 
     Returns:
-        A configured Graph instance.
+        A Graph with a GeminiAgentNode.
     """
-    # Create default dependencies if none are provided
-    deps = dependencies or HelloWorldDependencies()
-
-    # Define our graph with nodes and dependencies
-    graph = Graph(
-        nodes=[HelloNode, WorldNode, CombineNode, PrintNode],
-    )
-
-    return graph
-
-
-def get_gemini_agent_graph(dependencies: Optional[HelloWorldDependencies] = None) -> Graph:
-    """
-    Get the Gemini agent graph with optional dependencies.
-
-    Args:
-        dependencies: Optional dependencies to inject into the graph. If not provided,
-                      default dependencies will be used.
-
-    Returns:
-        A configured Graph instance.
-    """
-    # Create default dependencies if none are provided
-    deps = dependencies or HelloWorldDependencies()
-
-    # Define our graph with nodes and dependencies
-    graph = Graph(
-        nodes=[GeminiAgentNode],
-    )
-
-    return graph
-
-
-async def run_graph(
-    initial_state: Optional[MyState] = None, dependencies: Optional[HelloWorldDependencies] = None
-) -> Tuple[str, MyState, List[Any]]:
-    """
-    Run the Hello World graph.
-
-    Args:
-        initial_state: Optional initial state. If not provided, a new MyState will be created.
-        dependencies: Optional dependencies. If not provided, default dependencies will be used.
-
-    Returns:
-        A tuple of (output, final_state, history)
-
-    Raises:
-        GraphError: If there's an error during graph execution
-        ValueError: If invalid inputs are provided
-    """
-    try:
-        # Create a new state if none is provided
-        if initial_state is not None and not isinstance(initial_state, MyState):
-            raise ValueError("initial_state must be an instance of MyState or None")
-
-        state = initial_state or MyState()
-
-        # Create dependencies if none are provided
-        deps = dependencies or HelloWorldDependencies()
-
-        # Get the graph
-        graph = get_hello_world_graph()
-
-        # Run the graph with state and deps
-        logger.debug("Starting graph execution with state: %s", state)
-        graph_result = await graph.run(HelloNode(), state=state, deps=deps)
-        logger.debug("Graph execution completed successfully")
-
-        return graph_result.output, graph_result.state, graph_result.history
-
-    except GraphError as e:
-        logger.error("Graph execution failed: %s", str(e))
-        raise
-    except Exception as e:
-        logger.error("Unexpected error during graph execution: %s", str(e))
-        raise
+    # Create and return the graph with the GeminiAgentNode
+    node = GeminiAgentNode()
+    return Graph(nodes=[node])
 
 
 async def run_gemini_agent_graph(
-    user_prompt: str, dependencies: Optional[HelloWorldDependencies] = None
+    user_prompt: str, dependencies: Optional[GeminiDependencies] = None
 ) -> Tuple[str, MyState, List[Any]]:
     """
     Run the Gemini agent graph with a user prompt.
 
+    This function creates a state with the user prompt, creates a graph,
+    and runs it to generate a response.
+
     Args:
-        user_prompt: The user's prompt to send to the Gemini model.
-        dependencies: Optional dependencies. If not provided, default dependencies will be used.
+        user_prompt: The user's prompt to process.
+        dependencies: Optional dependencies to inject into the graph.
+            If None, default dependencies will be created.
 
     Returns:
-        A tuple of (output, final_state, history)
-
-    Raises:
-        GraphError: If there's an error during graph execution
-        ValueError: If invalid inputs are provided
+        A tuple containing the result string, the final state, and any errors.
     """
+    # Create a state with the user prompt
+    state = MyState(user_prompt=user_prompt)
+
+    # Create dependencies if not provided
+    if dependencies is None:
+        dependencies = GeminiDependencies()
+
+    # Get the Gemini agent graph
+    graph = get_gemini_agent_graph()
+
+    # Start timing
+    start_time = datetime.datetime.now()
+    logger.info("Starting Gemini agent graph at %s", start_time)
+
+    # Run the graph
     try:
-        # Create an initial state with the user prompt
-        state = MyState(user_prompt=user_prompt)
-
-        # Create dependencies if none are provided
-        deps = dependencies or HelloWorldDependencies()
-
-        # Get the graph
-        graph = get_gemini_agent_graph()
-
-        # Run the graph with state and deps
-        logger.debug("Starting Gemini agent graph execution with prompt: %s", user_prompt)
-        graph_result = await graph.run(GeminiAgentNode(), state=state, deps=deps)
-        logger.debug("Gemini agent graph execution completed successfully")
-
-        return graph_result.output, graph_result.state, graph_result.history
+        result = await graph.run(GeminiAgentNode(), state=state, deps=dependencies)
+        result_text = result.output
+        final_state = result.state
+        errors = []
 
     except GraphError as e:
-        logger.error("Gemini agent graph execution failed: %s", str(e))
-        raise
-    except Exception as e:
-        logger.error("Unexpected error during Gemini agent graph execution: %s", str(e))
-        raise
+        # Log the error
+        logger.error("Gemini agent graph failed: %s", str(e))
+
+        # Return error information
+        result_text = f"Error: {str(e)}"
+        final_state = state
+        errors = [str(e)]
+
+    # Calculate and log execution time
+    end_time = datetime.datetime.now()
+    execution_time = (end_time - start_time).total_seconds()
+    logger.info("Gemini agent graph completed in %.3f seconds", execution_time)
+
+    return result_text, final_state, errors
 
 
 def display_results(graph_result: GraphRunResult) -> None:
     """
-    Display the results of a graph run in a nice format.
+    Display the results of a graph execution.
+
+    This function takes a GraphRunResult and displays its value,
+    state details, and timing information.
 
     Args:
-        graph_result: The GraphRunResult object from a graph run
+        graph_result: The result of running a graph.
     """
-    if not isinstance(graph_result, GraphRunResult):
-        raise TypeError("graph_result must be a GraphRunResult instance")
+    # Get the output and state from the result
+    output = graph_result.output
+    state = graph_result.state
 
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Print the result and state details
+    print(f"\nResult: {output}")
+    print(f"State: {state}")
 
-    print("\n=== Graph Execution Results ===")
-    print(f"Time: {current_time}")
-    print(f"Result: {graph_result.output}")
-    print(f"Final state: {graph_result.state}")
+    # Print execution history if available
+    if hasattr(state, "node_execution_history"):
+        print("\nExecution History:")
+        for entry in state.node_execution_history:
+            print(f"  {entry}")
 
-    print("\nNode execution history:")
-    for i, item in enumerate(graph_result.history):
-        print(f"  {i+1}. {item.__class__.__name__}")
-    print("==============================\n")
+    # Print timing information if available
+    if hasattr(state, "total_time"):
+        print(f"\nTotal execution time: {state.total_time:.3f} seconds")

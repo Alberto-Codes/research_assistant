@@ -24,7 +24,7 @@ This guide helps you get started with the Research Agent tool. It covers install
 
 3. **Verify installation**:
    ```bash
-   pipenv run hello-graph --help
+   pipenv run research_agent --help
    ```
    
    You should see a help message listing available commands.
@@ -33,10 +33,11 @@ This guide helps you get started with the Research Agent tool. It covers install
 
 ### Choosing an Interface
 
-The Research Agent offers two main ways to interact with it:
+The Research Agent offers multiple ways to interact with it:
 
 1. **Command-line Interface (CLI)** - Text-based, good for scripting
 2. **Web Interface** - Visual, easier for exploration
+3. **Gemini Chat UI** - Interactive chat interface for conversations with Gemini models
 
 #### Web Interface (Recommended for Beginners)
 
@@ -48,7 +49,7 @@ The web interface provides a visual way to interact with the Research Agent:
    ```
    or
    ```bash
-   pipenv run hello-graph ui
+   pipenv run research_agent ui
    ```
 
 2. **Access the interface**: 
@@ -62,18 +63,51 @@ The web interface provides a visual way to interact with the Research Agent:
 
    ![Streamlit Interface Example](images/streamlit_interface.png)
 
+#### Gemini Chat Interface
+
+The Gemini Chat UI provides an interactive chat experience with Google's Gemini models:
+
+1. **Start the Gemini Chat interface**:
+   ```bash
+   make run-gemini
+   ```
+   or
+   ```bash
+   pipenv run research_agent --app gemini
+   ```
+   or
+   ```bash
+   streamlit run src/research_agent/ui/streamlit/gemini_chat.py
+   ```
+
+2. **Access the interface**:
+   - Open your web browser
+   - Go to http://localhost:8501
+
+3. **Using the Gemini Chat**:
+   - Type your message in the text input at the bottom
+   - Messages will stream in real-time with typing animation
+   - Configure system prompts and chat options in the sidebar
+   - Toggle conversation memory on/off in the sidebar
+   - Save your conversation history as a JSON file
+
 #### Command-line Interface
 
 For more advanced users or for automation:
 
 1. **Basic usage**:
    ```bash
-   pipenv run hello-graph cli
+   pipenv run research_agent cli
    ```
 
 2. **With custom options**:
    ```bash
-   pipenv run hello-graph cli --use-custom-llm --prefix "AI"
+   pipenv run research_agent cli --prefix "AI"
+   ```
+
+3. **Using Gemini from the command line**:
+   ```bash
+   pipenv run research_agent gemini --prompt "What are the three laws of robotics?"
    ```
 
 ### Configuration Options
@@ -82,12 +116,17 @@ You can customize how the Research Agent works:
 
 #### In the Web Interface
 
-- **Use Custom LLM**: Toggle this option to use a custom language model
 - **Text Prefix**: Add a prefix to generated text (e.g., "AI")
+
+#### In the Gemini Chat Interface
+
+- **System Prompt**: Edit the system instructions to customize the assistant's behavior
+- **Chat Memory**: Toggle conversation memory on or off
+- **Clear History**: Reset the conversation
+- **Save Conversation**: Download the chat history as a JSON file
 
 #### In the Command-line
 
-- `--use-custom-llm`: Use a custom language model client
 - `--prefix TEXT`: Add a prefix to generated text
 
 ## Example Workflows
@@ -100,13 +139,21 @@ You can customize how the Research Agent works:
 4. Observe the result: "Hello World!"
 5. Review the timing information and execution history
 
+### Gemini Chat Example
+
+1. Start the Gemini Chat UI with `research_agent --app gemini`
+2. In the sidebar, customize the system prompt if desired
+3. Type a message in the input field, such as "Tell me about quantum computing"
+4. Observe the streaming response from Gemini
+5. Continue the conversation with follow-up questions
+6. Save your conversation using the "Save Chat" button
+
 ### Custom Research Example
 
 1. Start the web interface with `make run-ui`
-2. In the sidebar, check "Use Custom LLM"
-3. Enter "AI" in the Text Prefix field
-4. Click the "Generate" button
-5. Observe the result: "AI Hello AI World!"
+2. Enter "AI" in the Text Prefix field
+3. Click the "Generate" button
+4. Observe the result: "AI Hello AI World!"
 
 ## Understanding the Results
 
@@ -116,6 +163,11 @@ The Research Agent provides several pieces of information:
 2. **Timing Information**: How long each step took
 3. **Execution History**: The sequence of steps that were performed
 4. **Component Outputs**: What each component produced
+
+In the Gemini Chat UI, you'll also see:
+1. **Response Time**: How long it took to generate the response
+2. **Token Metrics**: Information about tokens used (when available)
+3. **Chat History**: Complete conversation thread
 
 ## Troubleshooting
 
@@ -137,6 +189,12 @@ The Research Agent provides several pieces of information:
 - Verify you've entered the settings correctly
 - Check the logs for any error messages
 - Restart the interface if settings aren't being applied
+
+#### Gemini Chat UI Issues
+
+- If you encounter event loop errors, make sure you're using the latest version
+- Authentication errors may indicate issues with Google Cloud credentials
+- See the [Gemini Integration Guide](gemini_integration.md) for more troubleshooting tips
 
 ## Next Steps
 

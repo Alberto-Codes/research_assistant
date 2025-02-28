@@ -1,9 +1,8 @@
 """
-Node definitions for the Hello World graph.
+Node definitions for the Research Agent graph.
 
-This module defines the nodes used in the Hello World graph, including
-the HelloNode, WorldNode, CombineNode, and PrintNode. Each node performs
-a specific operation in the graph workflow.
+This module defines the nodes used in the Research Agent graph, primarily
+the GeminiAgentNode for chat interactions.
 """
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ class NodeError(Exception):
     pass
 
 
-from research_agent.core.dependencies import HelloWorldDependencies
+from research_agent.core.dependencies import GeminiDependencies
 from research_agent.core.state import MyState
 
 # Set up logging
@@ -94,219 +93,7 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
 
 
 @dataclass
-class HelloNode(BaseNode[MyState, HelloWorldDependencies, str]):
-    """First node that generates the 'Hello' text.
-
-    This node uses the LLM client from dependencies to generate
-    a greeting word if it's not already set in the state.
-    """
-
-    _log_prefix = "Generated"
-
-    def _get_output_text(self, ctx):
-        """Get the text to display in logs.
-
-        Args:
-            ctx: The graph run context.
-
-        Returns:
-            The text to display in logs.
-        """
-        return ctx.state.hello_text
-
-    @_measure_execution_time
-    async def run(self, ctx: GraphRunContext) -> WorldNode:
-        """Set the hello_text in the state and return the next node.
-
-        Args:
-            ctx: The graph run context containing state and dependencies.
-
-        Returns:
-            The next node to run in the graph.
-        """
-        # Record the start time
-        start_time = time.time()
-
-        # Only set hello_text if it's not already set
-        if not ctx.state.hello_text:
-            # Use the LLM client from dependencies
-            ctx.state.hello_text = await ctx.deps.llm_client.generate_text(
-                "Generate a greeting word like 'Hello'"
-            )
-
-        # Add a small delay to simulate processing
-        await asyncio.sleep(0.1)
-
-        # Record the generation time
-        ctx.state.hello_generation_time = time.time() - start_time
-
-        # Add to execution history
-        if "node_execution_history" not in ctx.state.__dict__:
-            ctx.state.node_execution_history = []
-        ctx.state.node_execution_history.append(f"HelloNode: Generated '{ctx.state.hello_text}'")
-
-        return WorldNode()
-
-
-@dataclass
-class WorldNode(BaseNode[MyState, HelloWorldDependencies, str]):
-    """Second node that generates the 'World' text.
-
-    This node uses the LLM client from dependencies to generate
-    a noun if it's not already set in the state.
-    """
-
-    _log_prefix = "Generated"
-
-    def _get_output_text(self, ctx):
-        """Get the text to display in logs.
-
-        Args:
-            ctx: The graph run context.
-
-        Returns:
-            The text to display in logs.
-        """
-        return ctx.state.world_text
-
-    @_measure_execution_time
-    async def run(self, ctx: GraphRunContext) -> CombineNode:
-        """Set the world_text in the state and return the next node.
-
-        Args:
-            ctx: The graph run context containing state and dependencies.
-
-        Returns:
-            The next node to run in the graph.
-        """
-        # Record the start time
-        start_time = time.time()
-
-        # Only set world_text if it's not already set
-        if not ctx.state.world_text:
-            # Use the LLM client from dependencies
-            ctx.state.world_text = await ctx.deps.llm_client.generate_text(
-                "Generate a noun like 'World'"
-            )
-
-        # Add a small delay to simulate processing
-        await asyncio.sleep(0.2)
-
-        # Record the generation time
-        ctx.state.world_generation_time = time.time() - start_time
-
-        # Add to execution history
-        ctx.state.node_execution_history.append(f"WorldNode: Generated '{ctx.state.world_text}'")
-
-        return CombineNode()
-
-
-@dataclass
-class CombineNode(BaseNode[MyState, HelloWorldDependencies, str]):
-    """Third node that combines the hello and world texts.
-
-    This node combines the hello_text and world_text from the state
-    to create a combined message.
-    """
-
-    _log_prefix = "Combined"
-
-    def _get_output_text(self, ctx):
-        """Get the text to display in logs.
-
-        Args:
-            ctx: The graph run context.
-
-        Returns:
-            The text to display in logs.
-        """
-        return ctx.state.combined_text
-
-    @_measure_execution_time
-    async def run(self, ctx: GraphRunContext) -> PrintNode:
-        """Combine the hello_text and world_text and return the next node.
-
-        Args:
-            ctx: The graph run context containing state and dependencies.
-
-        Returns:
-            The next node to run in the graph.
-        """
-        # Record the start time
-        start_time = time.time()
-
-        ctx.state.combined_text = f"{ctx.state.hello_text} {ctx.state.world_text}!"
-
-        # Add a small delay to simulate processing
-        await asyncio.sleep(0.15)
-
-        # Record the generation time
-        ctx.state.combine_generation_time = time.time() - start_time
-
-        # Add to execution history
-        ctx.state.node_execution_history.append(
-            f"CombineNode: Combined '{ctx.state.combined_text}'"
-        )
-
-        return PrintNode()
-
-
-@dataclass
-class PrintNode(BaseNode[MyState, HelloWorldDependencies, str]):
-    """Final node that prints the combined text and ends the graph.
-
-    This node takes the combined_text from the state, prints it,
-    and returns an End object to end the graph execution.
-    """
-
-    _log_prefix = "Final output"
-
-    def _get_output_text(self, ctx):
-        """Get the text to display in logs.
-
-        Args:
-            ctx: The graph run context.
-
-        Returns:
-            The text to display in logs.
-        """
-        return ctx.state.combined_text
-
-    @_measure_execution_time
-    async def run(self, ctx: GraphRunContext) -> End[str]:
-        """Print the final output and end the graph execution.
-
-        Args:
-            ctx: The graph run context containing state and dependencies.
-
-        Returns:
-            An End object containing the combined text.
-        """
-        # Record the start time
-        start_time = time.time()
-
-        # Add a small delay to simulate processing
-        await asyncio.sleep(0.05)
-
-        # Calculate the total execution time
-        ctx.state.total_time = (
-            time.time()
-            - start_time
-            + ctx.state.hello_generation_time
-            + ctx.state.world_generation_time
-            + ctx.state.combine_generation_time
-        )
-
-        # Add to execution history
-        ctx.state.node_execution_history.append(
-            f"PrintNode: Final output '{ctx.state.combined_text}'"
-        )
-
-        return End(ctx.state.combined_text)
-
-
-@dataclass
-class GeminiAgentNode(BaseNode[MyState, HelloWorldDependencies, str]):
+class GeminiAgentNode(BaseNode[MyState, GeminiDependencies, str]):
     """Node that processes a user prompt and generates an AI response using Gemini.
 
     This node takes the user_prompt from the state, sends it to the Gemini model,
@@ -359,4 +146,5 @@ class GeminiAgentNode(BaseNode[MyState, HelloWorldDependencies, str]):
         # Calculate the total execution time
         ctx.state.total_time = ctx.state.ai_generation_time
 
+        # Return an End node with the AI response
         return End(ctx.state.ai_response)
