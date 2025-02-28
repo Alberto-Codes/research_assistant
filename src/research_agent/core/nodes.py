@@ -26,8 +26,8 @@ class NodeError(Exception):
     pass
 
 
-from hello_world.core.dependencies import HelloWorldDependencies
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import HelloWorldDependencies
+from research_agent.core.state import MyState
 
 # Set up logging
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@
 Tests for the node implementations.
 
 This module contains tests for each of the node classes
-used in the Hello World graph.
+used in the Research Agent graph.
 """
 
 import asyncio
@@ -10,9 +10,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
-from hello_world.core.nodes import CombineNode, HelloNode, PrintNode, WorldNode
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
+from research_agent.core.nodes import CombineNode, HelloNode, PrintNode, WorldNode
+from research_agent.core.state import MyState
 
 
 @pytest.mark.asyncio

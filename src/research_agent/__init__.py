@@ -1,18 +1,18 @@
 """
-Hello World Pydantic Graph implementation.
+Research Agent Pydantic Graph implementation.
 """
 
-from hello_world.core.dependencies import (
+from research_agent.core.dependencies import (
     CustomLLMClient,
     HelloWorldDependencies,
     LLMClient,
     MockLLMClient,
 )
-from hello_world.core.graph import display_results, get_hello_world_graph, run_graph
+from research_agent.core.graph import display_results, get_hello_world_graph, run_graph
 
 # Re-export key components for backward compatibility
-from hello_world.core.nodes import CombineNode, HelloNode, PrintNode, WorldNode
-from hello_world.core.state import MyState
+from research_agent.core.nodes import CombineNode, HelloNode, PrintNode, WorldNode
+from research_agent.core.state import MyState
 
 __all__ = [
     # Nodes

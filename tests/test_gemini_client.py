@@ -9,7 +9,7 @@ import asyncio
 
 import pytest
 
-from hello_world.core.dependencies import GeminiLLMClient, LLMClient
+from research_agent.core.dependencies import GeminiLLMClient, LLMClient
 
 
 @pytest.fixture
@@ -47,8 +47,8 @@ Asimov later added a "Zeroth Law" that preceded the others: A robot may not harm
                     return response
             return self.responses["default"]
 
-    # Replace the real client with our mock
-    monkeypatch.setattr("hello_world.core.dependencies.GeminiLLMClient", MockGeminiClient)
+    # Apply the mock by monkeypatching the module
+    monkeypatch.setattr("research_agent.core.dependencies.GeminiLLMClient", MockGeminiClient)
 
     return MockGeminiClient()
 

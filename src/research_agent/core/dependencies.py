@@ -44,15 +44,20 @@ class MockLLMClient:
     """
 
     async def generate_text(self, prompt: str) -> str:
-        """Return a fixed mock response.
+        """Return a response based on the prompt content.
 
         Args:
-            prompt: The text prompt (ignored in this implementation).
+            prompt: The text prompt to generate from.
 
         Returns:
-            A fixed mock response.
+            A response based on the prompt content.
         """
-        return "This is a mock response from an LLM. In a real implementation, this would be generated text."
+        if "greeting" in prompt.lower() or "hello" in prompt.lower():
+            return "Hello"
+        elif "noun" in prompt.lower() or "world" in prompt.lower():
+            return "World"
+        else:
+            return "I'm a mock LLM client!"
 
 
 class CustomLLMClient:
@@ -71,18 +76,24 @@ class CustomLLMClient:
         self.prefix = prefix or ""
 
     async def generate_text(self, prompt: str) -> str:
-        """Return a fixed response with an optional prefix.
+        """Return a response based on the prompt content with an optional prefix.
 
         Args:
-            prompt: The text prompt (ignored in this implementation).
+            prompt: The text prompt to generate from.
 
         Returns:
-            A fixed response with an optional prefix.
+            A response based on the prompt content with an optional prefix.
         """
-        text = "This is a custom response from an LLM with a prefix."
+        if "greeting" in prompt.lower() or "hello" in prompt.lower():
+            text = "Hello"
+        elif "noun" in prompt.lower() or "world" in prompt.lower():
+            text = "World"
+        else:
+            text = "Response"
+
         if self.prefix:
             text = f"{self.prefix} {text}"
-        return text
+        return text.strip()
 
 
 def deprecated(func):

@@ -1,7 +1,7 @@
 """
 Tests for the Streamlit application.
 
-This module tests the Streamlit web interface for the Hello World application,
+This module tests the Streamlit web interface for the Research Agent application,
 verifying that it correctly displays user interface elements and handles user interactions.
 """
 
@@ -13,10 +13,10 @@ import pytest
 # Import the Streamlit testing framework
 from streamlit.testing.v1 import AppTest
 
-from hello_world.core.state import MyState
+from research_agent.core.state import MyState
 
 # Import the app and related modules
-from hello_world.ui.streamlit.app import generate_hello_world
+from research_agent.ui.streamlit.app import generate_hello_world
 
 
 def create_mock_state():
@@ -37,7 +37,7 @@ def create_mock_state():
 def test_streamlit_initial_ui():
     """Test that the initial UI elements are correctly displayed."""
     # Arrange: Create an instance of the app test
-    at = AppTest.from_file("src/hello_world/ui/streamlit/app.py")
+    at = AppTest.from_file("src/research_agent/ui/streamlit/app.py")
 
     # Act: Run the app
     at.run()
@@ -59,7 +59,7 @@ def test_streamlit_initial_ui():
 def test_streamlit_generate_button():
     """Test that the Generate button is present and can be clicked."""
     # Create an instance of the app test
-    at = AppTest.from_file("src/hello_world/ui/streamlit/app.py")
+    at = AppTest.from_file("src/research_agent/ui/streamlit/app.py")
 
     # Run the app
     at.run()
@@ -70,7 +70,7 @@ def test_streamlit_generate_button():
 
     # Test that we can click the button (but don't assert on side effects)
     # We patch generate_hello_world to avoid making actual API calls
-    with patch("hello_world.ui.streamlit.app.generate_hello_world") as mock_generate:
+    with patch("research_agent.ui.streamlit.app.generate_hello_world") as mock_generate:
         mock_state = create_mock_state()
         # Create a mock coroutine for the patched function to return
         mock_coro = MagicMock()
@@ -98,7 +98,7 @@ def test_generate_hello_world_with_different_parameters():
 
     # Test each case
     for case in test_cases:
-        with patch("hello_world.ui.streamlit.app.run_graph") as mock_run_graph:
+        with patch("research_agent.ui.streamlit.app.run_graph") as mock_run_graph:
             # Set up the mock
             mock_state = create_mock_state()
             mock_output = "Test Output"
@@ -124,7 +124,7 @@ def test_generate_hello_world_with_different_parameters():
 async def test_generate_hello_world_function():
     """Test the generate_hello_world function directly."""
     # Arrange: Patch the run_graph function
-    with patch("hello_world.ui.streamlit.app.run_graph") as mock_run_graph:
+    with patch("research_agent.ui.streamlit.app.run_graph") as mock_run_graph:
         mock_state = create_mock_state()
         mock_output = "Test Hello Test World!"
         mock_history = ["mock_history_item"]

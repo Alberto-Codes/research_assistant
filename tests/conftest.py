@@ -10,12 +10,12 @@ import asyncio
 
 import pytest
 
-from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
-from hello_world.core.dependencies import (
+from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
+from research_agent.core.dependencies import (
     LLMClient,
     MockLLMClient,
 )
-from hello_world.core.state import MyState
+from research_agent.core.state import MyState
 
 # We're removing the custom event_loop fixture and using the one provided by pytest-asyncio
 # Set default loop scope for asyncio fixtures

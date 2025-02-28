@@ -104,7 +104,7 @@ def run_cli(args: argparse.Namespace) -> None:
         args: Parsed command-line arguments.
     """
     # Import the CLI entry point
-    from hello_world.cli.commands import cli_entry
+    from research_agent.cli.commands import cli_entry
 
     # Set the args in sys.argv for the CLI to parse
     cli_args = []
@@ -136,7 +136,7 @@ def run_streamlit(args: argparse.Namespace) -> None:
     """
     # Get the path to the Streamlit app
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    app_path = os.path.join(current_dir, "hello_world", "ui", "streamlit", "app.py")
+    app_path = os.path.join(current_dir, "research_agent", "ui", "streamlit", "app.py")
 
     # Run Streamlit using subprocess
     cmd = [

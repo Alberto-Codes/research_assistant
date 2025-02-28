@@ -36,13 +36,13 @@ The project provides a command-line interface for running the AI agent:
 #### Hello World Example
 
 ```
-python -m hello_world.cli.commands hello [--prefix PREFIX] [--use-custom-llm]
+python -m research_agent.cli.commands hello [--prefix PREFIX] [--use-custom-llm]
 ```
 
 #### Gemini AI Agent
 
 ```
-python -m hello_world.cli.commands gemini --prompt "Your question here" [--project-id PROJECT_ID] [--use-mock-gemini]
+python -m research_agent.cli.commands gemini --prompt "Your question here" [--project-id PROJECT_ID] [--use-mock-gemini]
 ```
 
 Options:
@@ -61,7 +61,7 @@ python examples/gemini_pydantic_ai_example.py "Your question here"
 Or use the CLI with the mock client:
 
 ```
-python -m hello_world.cli.commands gemini --prompt "Your question here" --use-mock-gemini
+python -m research_agent.cli.commands gemini --prompt "Your question here" --use-mock-gemini
 ```
 
 ## Authentication for Vertex AI
@@ -74,7 +74,7 @@ To use the actual Vertex AI service:
 
 ## Project Structure
 
-- `src/hello_world/`: Main package
+- `src/research_agent/`: Main package
   - `api/`: API layer including services
   - `cli/`: Command-line interface
   - `core/`: Core implementation including nodes, graph, and dependencies
@@ -111,7 +111,7 @@ The project follows a clean separation of concerns:
 ```
 src/
 ├── __init__.py              # Package initialization
-├── hello_world/
+├── research_agent/
 │   ├── __init__.py          # Package initialization
 │   ├── core/                # Core business logic
 │   │   ├── dependencies.py  # Dependency injection definitions
@@ -222,10 +222,10 @@ pytest
 pytest -v
 
 # Run specific test file
-pytest tests/hello_world/test_nodes.py
+pytest tests/research_agent/test_nodes.py
 
 # Run specific test
-pytest tests/hello_world/test_nodes.py::test_hello_node
+pytest tests/research_agent/test_nodes.py::test_hello_node
 ```
 
 Test categories:
@@ -378,7 +378,7 @@ You can launch the Gemini chat interface with the following command:
 
 ```bash
 # From the project root
-python -m hello_world.ui.cli_entry --app gemini
+python -m research_agent.ui.cli_entry --app gemini
 ```
 
 Or simply:

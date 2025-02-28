@@ -1,7 +1,7 @@
 """
-Streamlit interface for the Hello World application.
+Streamlit interface for the Research Agent application.
 
-This module provides a Streamlit web interface for the Hello World
+This module provides a Streamlit web interface for the Research Agent
 graph example, allowing users to interact with the application through a GUI.
 """
 
@@ -12,12 +12,12 @@ from typing import Optional
 import streamlit as st
 
 # Import directly from core modules instead of services
-from hello_world.core.dependencies import HelloWorldDependencies
-from hello_world.core.graph import get_hello_world_graph, run_graph
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import HelloWorldDependencies
+from research_agent.core.graph import get_hello_world_graph, run_graph
+from research_agent.core.state import MyState
 
 st.set_page_config(
-    page_title="Hello World Graph",
+    page_title="Research Agent Graph",
     page_icon="👋",
     layout="centered",
     initial_sidebar_state="expanded",

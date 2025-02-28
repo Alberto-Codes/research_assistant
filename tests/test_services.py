@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from hello_world.api.services import generate_ai_response, generate_hello_world
-from hello_world.core.state import MyState
+from research_agent.api.services import generate_ai_response, generate_hello_world
+from research_agent.core.state import MyState
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ async def test_generate_hello_world():
 
 
 @pytest.mark.asyncio
-@patch("hello_world.core.dependencies.GeminiLLMClient")
+@patch("research_agent.core.dependencies.GeminiLLMClient")
 async def test_generate_ai_response(MockGeminiClass):
     """Test the generate_ai_response service function with a patched Gemini client."""
     # Configure the mock

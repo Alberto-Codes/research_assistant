@@ -1,8 +1,8 @@
 """
-Command-line entry points for the Hello World application.
+Command-line entry points for the Research Agent application.
 
 This module provides command-line entry points for running the
-Hello World application and its variants like the Gemini chat.
+Research Agent application and its variants like the Gemini chat.
 """
 
 import argparse

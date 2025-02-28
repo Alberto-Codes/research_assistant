@@ -10,8 +10,8 @@ from typing import Protocol
 
 import pytest
 
-from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
-from hello_world.core.dependencies import (
+from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
+from research_agent.core.dependencies import (
     LLMClient,
     MockLLMClient,
 )

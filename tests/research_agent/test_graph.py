@@ -1,7 +1,7 @@
 """
 Tests for the graph implementation.
 
-This module tests the Hello World graph functionality, including initialization,
+This module tests the Research Agent graph functionality, including initialization,
 execution with various state and dependency configurations, and result processing.
 """
 
@@ -9,16 +9,17 @@ import asyncio
 
 import pytest
 
-from hello_world.core.dependencies import HelloWorldDependencies as GraphDependencies
-from hello_world.core.graph import (
+from research_agent.core.dependencies import HelloWorldDependencies as GraphDependencies
+from research_agent.core.graph import (
+    GraphRunResult,
     display_results,
 )
-from hello_world.core.graph import get_hello_world_graph as hello_world_graph
-from hello_world.core.graph import (
+from research_agent.core.graph import get_hello_world_graph as hello_world_graph
+from research_agent.core.graph import (
     run_graph,
 )
-from hello_world.core.nodes import HelloNode
-from hello_world.core.state import MyState
+from research_agent.core.nodes import HelloNode
+from research_agent.core.state import MyState
 
 
 @pytest.mark.asyncio
@@ -84,10 +85,11 @@ async def test_graph_with_complete_initial_state():
     assert len(history) == 5  # All nodes + end step
 
 
-class MockGraphRunResult:
-    """Mock class for testing display_results."""
+class MockGraphRunResult(GraphRunResult):
+    """Mock GraphRunResult for testing."""
 
     def __init__(self, output, state, history):
+        """Initialize with output, state, and history."""
         self.output = output
         self.state = state
         self.history = history

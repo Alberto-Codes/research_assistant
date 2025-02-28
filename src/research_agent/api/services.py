@@ -1,5 +1,5 @@
 """
-Services for the Hello World application.
+Services for the Research Agent application.
 
 This module provides service functions that can be used by different interfaces
 (CLI, Streamlit, FastAPI) to access the core functionality of the application.
@@ -9,12 +9,12 @@ from typing import Any, List, Optional, Tuple
 
 from pydantic_graph import Graph
 
-from hello_world.core.dependencies import HelloWorldDependencies
-from hello_world.core.graph import get_gemini_agent_graph as core_get_gemini_agent_graph
-from hello_world.core.graph import get_hello_world_graph as core_get_hello_world_graph
-from hello_world.core.graph import run_gemini_agent_graph, run_graph
-from hello_world.core.nodes import CombineNode, GeminiAgentNode, HelloNode, PrintNode, WorldNode
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import HelloWorldDependencies
+from research_agent.core.graph import get_gemini_agent_graph as core_get_gemini_agent_graph
+from research_agent.core.graph import get_hello_world_graph as core_get_hello_world_graph
+from research_agent.core.graph import run_gemini_agent_graph, run_graph
+from research_agent.core.nodes import CombineNode, GeminiAgentNode, HelloNode, PrintNode, WorldNode
+from research_agent.core.state import MyState
 
 # Try to import GraphDeps, or define it if not available
 try:

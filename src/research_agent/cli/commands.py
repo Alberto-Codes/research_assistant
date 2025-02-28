@@ -1,7 +1,7 @@
 """
-Command-line interface for the Hello World Pydantic Graph example.
+Command-line interface for the Research Agent Pydantic Graph example.
 
-This module provides the command-line interface for running the Hello World graph
+This module provides the command-line interface for running the Research Agent graph
 example. It handles command-line arguments, uses the services layer to execute the graph,
 and displays the results.
 """
@@ -13,8 +13,8 @@ import warnings
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
-from hello_world.api.services import generate_ai_response, generate_hello_world
-from hello_world.core.state import MyState
+from research_agent.api.services import generate_ai_response, generate_hello_world
+from research_agent.core.state import MyState
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -23,7 +23,7 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         The parsed command-line arguments.
     """
-    parser = argparse.ArgumentParser(description="Hello World Pydantic Graph example.")
+    parser = argparse.ArgumentParser(description="Research Agent Pydantic Graph example.")
 
     # Create subparsers for different commands
     subparsers = parser.add_subparsers(dest="command", help="Command to run")

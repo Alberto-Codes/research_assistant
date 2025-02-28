@@ -21,9 +21,9 @@ except Exception as e:
     print(f"Warning: Could not apply nest_asyncio: {e}")
 
 # Import directly from core modules
-from hello_world.core.dependencies import GeminiLLMClient, HelloWorldDependencies
-from hello_world.core.graph import run_gemini_agent_graph
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import GeminiLLMClient, HelloWorldDependencies
+from research_agent.core.graph import run_gemini_agent_graph
+from research_agent.core.state import MyState
 
 # Try to import pydantic-ai message parts
 try:

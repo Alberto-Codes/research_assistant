@@ -13,9 +13,9 @@ import pytest
 from pydantic_graph import End
 from pydantic_graph.nodes import GraphRunContext
 
-from hello_world.core.dependencies import HelloWorldDependencies, LLMClient
-from hello_world.core.nodes import GeminiAgentNode
-from hello_world.core.state import MyState
+from research_agent.core.dependencies import HelloWorldDependencies, LLMClient
+from research_agent.core.nodes import GeminiAgentNode
+from research_agent.core.state import MyState
 
 
 @pytest.fixture
