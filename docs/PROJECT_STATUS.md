@@ -40,9 +40,13 @@ Think of it as a pipeline where information flows through different stations (or
 - **Streamlined services layer**: Refactored the API services to use the core implementations more effectively.
 - **Comprehensive Test Coverage**: Updated and expanded test suite to work with the new package structure
 - Implemented static code analysis tools (linters, formatters)
-- Created a Makefile to simplify common development tasks
-- Developed a cleanup script to maintain code quality
+- Created a cleanup script to maintain code quality
 - Streamlined the Streamlit web interface for better user experience
+- **Simplified LLM Architecture**: Removed CustomLLMClient and MockLLMClient, standardizing exclusively on GeminiLLMClient for all LLM operations
+  - Removed deprecated flags (`use_custom_llm` and `use_mock_gemini`) throughout the codebase
+  - Updated all tests to work with the Gemini client
+  - Simplified service functions by removing unnecessary parameters
+  - Streamlined the UI code by removing toggle options for different clients
 
 ### Recent Updates
 
@@ -61,7 +65,6 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Known Limitations
 
-- The current implementation uses mock LLM (Large Language Model) clients instead of connecting to real AI services
 - The research capabilities are limited to the "Hello World" example
 - Performance optimizations for larger workloads haven't been implemented yet
 
@@ -89,7 +92,7 @@ For the Gemini Chat interface, the flow is:
 
 ### Short-term Goals
 
-- Connect to real LLM providers (like OpenAI, Anthropic) for more powerful capabilities
+- Connect to additional LLM providers (like OpenAI, Anthropic) for more powerful capabilities
 - Add more complex research workflows beyond the example
 - Improve documentation for non-technical users
 - Create tutorials to help users build their own research agents
@@ -108,9 +111,13 @@ For the Gemini Chat interface, the flow is:
 
 If you're interested in trying the Research Agent:
 
-1. **For non-technical users**: The easiest way is to use the Streamlit interface by running:
+1. **For the Hello World Streamlit interface**:
    ```
-   make run-ui
+   python -m research_agent.ui.cli_entry
+   ```
+   or if you've installed the package:
+   ```
+   research_agent
    ```
    This opens a web page where you can interact with the system visually.
 
@@ -145,4 +152,4 @@ The project is in a **stable and functioning state**. The codebase follows best 
 
 The latest build (`research_agent-0.1.0-py3-none-any.whl`) is available and functioning correctly with all recent fixes applied.
 
-The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. 
+The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. The codebase has been streamlined to use exclusively the GeminiLLMClient, removing unnecessary client implementations and simplifying the architecture. 
