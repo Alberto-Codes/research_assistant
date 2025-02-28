@@ -8,6 +8,7 @@ pydantic-ai = "*"
 pydantic-graph = "*"
 streamlit = "*"
 research_agent = {file = ".", editable = true}
+nest-asyncio = "*"
 
 [dev-packages]
 black = "*"

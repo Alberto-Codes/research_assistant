@@ -366,4 +366,45 @@ The separation of concerns makes it easy to modify or extend any part of the sys
 - [Development Guide](docs/development.md)
 - [User Guide](docs/user_guide.md)
 - [Gemini Integration Guide](docs/gemini_integration.md)
-- [Testing Guide](TESTING.md) 
+- [Testing Guide](TESTING.md)
+
+## Using the Gemini Chat Interface
+
+The Research Agent now includes a chat interface for interacting with Google's Gemini LLM through the pydantic-graph framework. This feature allows you to have natural conversations with the Gemini model while leveraging the agent infrastructure.
+
+### Running the Gemini Chat UI
+
+You can launch the Gemini chat interface with the following command:
+
+```bash
+# From the project root
+python -m hello_world.ui.cli_entry --app gemini
+```
+
+Or simply:
+
+```bash
+research_agent --app gemini
+```
+
+This will open a Streamlit web interface in your browser where you can interact with the Gemini model.
+
+### Features of the Gemini Chat Interface
+
+- **Streaming Responses:** See responses as they're generated, character by character
+- **Custom System Prompts:** Configure how the assistant behaves by modifying the system prompt
+- **Conversation Memory:** Enable or disable memory of previous messages in the conversation
+- **Chat History:** View and save your conversation history
+- **Response Details:** Examine timing and processing information for each response
+
+### Configuration
+
+The sidebar in the Streamlit interface allows you to customize your experience:
+
+1. **System Prompt:** Edit the instructions that define the AI assistant's behavior
+2. **Chat Memory:** Toggle whether the assistant remembers previous messages
+3. **Clear Chat History:** Reset the conversation to start fresh
+
+### Saving Conversations
+
+After at least one exchange, you'll have the option to save your conversation as a JSON file for future reference or analysis 
