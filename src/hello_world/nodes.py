@@ -11,10 +11,11 @@ import asyncio
 from pydantic_graph import BaseNode, End, GraphRunContext
 
 from .state import MyState
+from .dependencies import GraphDependencies
 
 
 @dataclass
-class HelloNode(BaseNode[MyState]):
+class HelloNode(BaseNode[MyState, GraphDependencies, str]):
     """First node that generates the 'Hello' text."""
     
     async def run(self, ctx: GraphRunContext) -> WorldNode:
@@ -24,7 +25,8 @@ class HelloNode(BaseNode[MyState]):
         
         # Only set hello_text if it's not already set
         if not ctx.state.hello_text:
-            ctx.state.hello_text = "Hello"
+            # Use the LLM client from dependencies
+            ctx.state.hello_text = await ctx.deps.llm_client.generate_text("Generate a greeting word like 'Hello'")
         
         # Add a small delay to simulate processing
         await asyncio.sleep(0.1)
@@ -37,7 +39,7 @@ class HelloNode(BaseNode[MyState]):
 
 
 @dataclass
-class WorldNode(BaseNode[MyState]):
+class WorldNode(BaseNode[MyState, GraphDependencies, str]):
     """Second node that generates the 'World' text."""
     
     async def run(self, ctx: GraphRunContext) -> CombineNode:
@@ -47,7 +49,8 @@ class WorldNode(BaseNode[MyState]):
         
         # Only set world_text if it's not already set
         if not ctx.state.world_text:
-            ctx.state.world_text = "World"
+            # Use the LLM client from dependencies
+            ctx.state.world_text = await ctx.deps.llm_client.generate_text("Generate a noun like 'World'")
         
         # Add a small delay to simulate processing
         await asyncio.sleep(0.2)
@@ -60,7 +63,7 @@ class WorldNode(BaseNode[MyState]):
 
 
 @dataclass
-class CombineNode(BaseNode[MyState, None, str]):
+class CombineNode(BaseNode[MyState, GraphDependencies, str]):
     """Third node that combines the hello and world texts."""
     
     async def run(self, ctx: GraphRunContext) -> PrintNode:
@@ -81,7 +84,7 @@ class CombineNode(BaseNode[MyState, None, str]):
 
 
 @dataclass
-class PrintNode(BaseNode[MyState, None, str]):
+class PrintNode(BaseNode[MyState, GraphDependencies, str]):
     """Final node that prints the combined text and ends the graph."""
     
     async def run(self, ctx: GraphRunContext) -> End[str]:
