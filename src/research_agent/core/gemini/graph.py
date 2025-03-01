@@ -155,10 +155,10 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
                     logger.warning(f"Error: {error}")
     else:
         logger.info(f"Result: {output}")
-        
+
         if verbose:
             logger.debug(f"State: {state}")
-            
+
             if graph_result.errors:
                 logger.warning("Errors occurred during graph execution")
                 for error in graph_result.errors:

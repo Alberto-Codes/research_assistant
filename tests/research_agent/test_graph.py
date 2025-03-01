@@ -6,8 +6,8 @@ execution with various state and dependency configurations, and result processin
 """
 
 import asyncio
-from unittest.mock import AsyncMock, patch
 import logging
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from pydantic_graph import Graph, GraphRunResult

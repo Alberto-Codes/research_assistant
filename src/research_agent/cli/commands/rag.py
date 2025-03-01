@@ -139,7 +139,7 @@ async def run_rag_command(args: argparse.Namespace) -> int:
             print(result["answer"])
         except UnicodeEncodeError as e:
             # Handle Unicode encoding error by replacing problematic characters
-            sanitized_answer = result["answer"].encode('ascii', 'replace').decode('ascii')
+            sanitized_answer = result["answer"].encode("ascii", "replace").decode("ascii")
             logger.warning(f"Unicode encoding issue detected: {e}. Using ASCII with replacements.")
             print(sanitized_answer)
         print("=" * 80)
