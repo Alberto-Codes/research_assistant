@@ -3,17 +3,29 @@ Main command-line interface for Research Agent.
 
 This module provides the main entry point for the Research Agent CLI,
 coordinating all available commands.
+
+DEPRECATED: This module is kept for backward compatibility.
+Please use the top-level main.py module instead.
 """
 
 import argparse
 import asyncio
 import logging
 import sys
+import warnings
 from typing import List, Optional
 
 from research_agent.cli.commands.gemini import add_gemini_command
 from research_agent.cli.commands.ingest import add_ingest_command
 from research_agent.core.logging_config import configure_logging
+
+# Show deprecation warning
+warnings.warn(
+    "The research_agent.cli.main module is deprecated. "
+    "Please use the top-level main module instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -47,6 +59,12 @@ def create_parser() -> argparse.ArgumentParser:
         "--log-file",
         type=str,
         help="Write logs to a file instead of stdout",
+    )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        default="",
+        help="Prefix to add to LLM responses",
     )
 
     return parser
@@ -99,7 +117,6 @@ async def main_async(args: Optional[List[str]] = None) -> int:
 def cli_entry() -> None:
     """
     Entry point for the CLI.
-    This function is the main entry point registered in setup.py.
     """
     # Set up asyncio for Windows if needed
     if sys.platform == "win32":

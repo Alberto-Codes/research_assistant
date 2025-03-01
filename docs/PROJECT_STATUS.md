@@ -26,6 +26,13 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Consolidated Entry Points**: Unified the main entry points into a single source of truth in `src/main.py`:
+  - Simplified the CLI and UI interfaces to use a common entry point
+  - Added direct command support for the CLI (gemini, ingest)
+  - Implemented robust error handling for file paths and commands
+  - Created a more maintainable structure for future expansion
+  - Fixed circular import issues to ensure reliability
+  
 - **Modular CLI Architecture**: Completely reorganized the CLI structure for better maintainability and extensibility:
   - Created a dedicated `commands/` directory with separate modules for each command
   - Implemented centralized command registration and argument parsing
@@ -184,21 +191,13 @@ If you're interested in trying the Research Agent:
 
 1. **For the Hello World Streamlit interface**:
    ```
-   python -m research_agent.ui.cli_entry
-   ```
-   or if you've installed the package:
-   ```
-   research_agent
+   python -m src.main ui
    ```
    This opens a web page where you can interact with the system visually.
 
 2. **To use the Gemini Chat interface**:
    ```
-   python -m research_agent.ui.cli_entry --app gemini
-   ```
-   or
-   ```
-   research_agent --app gemini
+   python -m src.main ui
    ```
    This opens a chat interface where you can have conversations with the Gemini model.
 
@@ -219,9 +218,15 @@ If you're interested in trying the Research Agent:
    ```
    This loads documents from the specified directory and stores them in a ChromaDB collection.
 
-5. **For developers**: Check out the README.md file for detailed setup instructions.
+5. **For the streamlit UI with a specific port**:
+   ```
+   python -m src.main ui --port 8888
+   ```
+   This launches the Streamlit interface on port 8888 instead of the default 8501.
 
-6. **Quick test**: To verify the installation, run the command-line tool:
+6. **For developers**: Check out the README.md file for detailed setup instructions.
+
+7. **Quick test**: To verify the installation, run the command-line tool:
    ```
    research_agent gemini --prompt "Hello, what can you do?"
    ```
@@ -243,3 +248,5 @@ The latest build (`research_agent-0.1.0-py3-none-any.whl`) is available and func
 The CLI structure has been significantly improved with a modular architecture that makes it easy to add new commands in the future. The document ingestion pipeline is now fully operational with ChromaDB integration, allowing for storage and retrieval of document embeddings. The logging system provides detailed information for debugging and monitoring, with configurable output levels and destinations.
 
 The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. The interface has been significantly improved with a complete rewrite of the streaming implementation, fixing event loop issues that previously prevented multi-turn conversations. The codebase has been streamlined to use exclusively the GeminiLLMClient, removing unnecessary client implementations and simplifying the architecture. The Graph implementation has been properly aligned with pydantic-graph's requirements, ensuring a solid foundation for future development of more complex research workflows. 
+
+The main entry points have been consolidated to eliminate redundancy and improve maintainability. The `src/main.py` file now serves as the single source of truth for launching both the CLI and the Streamlit UI, making it easier to add new interfaces or commands in the future. 

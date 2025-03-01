@@ -1,5 +1,5 @@
 """
-Main entry point for the Hello World application.
+Main entry point for the Research Agent application.
 
 This module serves as the main entry point for the application,
 providing command-line argument parsing and dispatching to the
@@ -8,10 +8,15 @@ appropriate interface (CLI or Streamlit).
 
 # Standard library imports
 import argparse
+import asyncio
+import logging
 import os
 import subprocess
 import sys
 from typing import List, Optional
+
+from research_agent.cli.commands.gemini import add_gemini_command
+from research_agent.cli.commands.ingest import add_ingest_command
 
 # Import local modules
 from research_agent.core.logging_config import configure_logging
@@ -30,68 +35,103 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
     Returns:
         Parsed arguments.
     """
+    # Check if first argument is a direct command (gemini, ingest)
+    # This handles the case when the script is called as: research_agent ingest ...
+    direct_commands = {"gemini", "ingest"}
+    is_direct_command = args and len(args) > 0 and args[0] in direct_commands
+
+    if is_direct_command:
+        # Create a parser for direct command invocation
+        parser = argparse.ArgumentParser(
+            description="Research Agent - AI Research Assistant",
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        )
+
+        # Create subparsers for commands
+        subparsers = parser.add_subparsers(dest="command", help="Command to run", required=True)
+
+        # Add all available commands
+        add_gemini_command(subparsers)
+        add_ingest_command(subparsers)
+
+        # Add common arguments to the main parser
+        parser.add_argument(
+            "--log-level",
+            choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            default="INFO",
+            help="Set the logging level",
+        )
+        parser.add_argument(
+            "--log-file",
+            type=str,
+            help="Write logs to a file instead of stdout",
+        )
+        parser.add_argument(
+            "--prefix",
+            type=str,
+            default="",
+            help="Prefix to add to LLM responses",
+        )
+
+        # Parse the arguments
+        parsed_args = parser.parse_args(args)
+        # Add an interface attribute for compatibility with the rest of the code
+        parsed_args.interface = "cli"
+        return parsed_args
+
+    # Standard interface-based parsing (cli/ui)
     parser = argparse.ArgumentParser(
-        description="Hello World Graph Application",
+        description="Research Agent - AI Research Assistant",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    # Check if the first argument is 'cli' or 'ui'
-    if args and len(args) > 0 and args[0] in ["cli", "ui"]:
-        # New-style command-line arguments with subcommands
-        subparsers = parser.add_subparsers(
-            dest="interface",
-            help="Interface to use",
-            required=True,
-        )
+    # Create main subparsers for interface
+    subparsers = parser.add_subparsers(
+        dest="interface",
+        help="Interface to use",
+        required=True,
+    )
 
-        # CLI interface
-        cli_parser = subparsers.add_parser(
-            "cli",
-            help="Run the command-line interface",
-        )
-        cli_parser.add_argument(
-            "--prefix",
-            type=str,
-            default="",
-            help="Prefix to add to LLM responses",
-        )
+    # CLI interface
+    cli_parser = subparsers.add_parser(
+        "cli",
+        help="Run the command-line interface",
+    )
 
-        # Add logging arguments to both parsers
-        for p in [cli_parser]:
-            add_logging_arguments(p)
+    # Create CLI command subparsers
+    cli_subparsers = cli_parser.add_subparsers(
+        dest="command",
+        help="CLI command to run",
+        required=True,
+    )
 
-        # Streamlit interface
-        streamlit_parser = subparsers.add_parser(
-            "ui",
-            help="Run the Streamlit user interface",
-        )
-        streamlit_parser.add_argument(
-            "--port",
-            type=int,
-            default=8501,
-            help="Port to run the Streamlit UI on",
-        )
+    # Add all available CLI commands
+    add_gemini_command(cli_subparsers)
+    add_ingest_command(cli_subparsers)
 
-        # Add logging arguments
-        add_logging_arguments(streamlit_parser)
-    else:
-        # Old-style command-line arguments (for backward compatibility)
-        parser.add_argument(
-            "--prefix",
-            type=str,
-            default="",
-            help="Prefix to add to LLM responses",
-        )
-        # Hidden argument for interface, defaulting to 'cli'
-        parser.add_argument(
-            "--interface",
-            type=str,
-            default="cli",
-            help=argparse.SUPPRESS,
-        )
+    # Add common arguments to the CLI parser
+    cli_parser.add_argument(
+        "--prefix",
+        type=str,
+        default="",
+        help="Prefix to add to LLM responses",
+    )
 
-        # Add logging arguments
-        add_logging_arguments(parser)
+    # Streamlit interface
+    streamlit_parser = subparsers.add_parser(
+        "ui",
+        help="Run the Streamlit user interface",
+    )
+    streamlit_parser.add_argument(
+        "--port",
+        type=int,
+        default=8501,
+        help="Port to run the Streamlit UI on",
+    )
+
+    # Add logging arguments to all parsers
+    for p in [parser, cli_parser, streamlit_parser]:
+        add_logging_arguments(p)
 
     return parser.parse_args(args)
 
@@ -117,6 +157,40 @@ def add_logging_arguments(parser):
     )
 
 
+async def run_cli_async(args: argparse.Namespace) -> int:
+    """
+    Run the CLI interface asynchronously.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        Exit code (0 for success, non-zero for errors)
+    """
+    # Get the handler for the specified command
+    command_handlers = {
+        "gemini": "research_agent.cli.commands.gemini.run_gemini_command",
+        "ingest": "research_agent.cli.commands.ingest.run_ingest_command",
+    }
+
+    handler_path = command_handlers.get(args.command)
+    if not handler_path:
+        print(f"Unknown command: {args.command}", file=sys.stderr)
+        return 1
+
+    # Import the handler dynamically
+    module_path, func_name = handler_path.rsplit(".", 1)
+    module = __import__(module_path, fromlist=[func_name])
+    command_handler = getattr(module, func_name)
+
+    # Run the command
+    try:
+        return await command_handler(args)
+    except Exception as e:
+        logging.error(f"Error executing command: {e}", exc_info=True)
+        return 1
+
+
 def run_cli(args: argparse.Namespace) -> None:
     """
     Run the CLI interface.
@@ -124,26 +198,13 @@ def run_cli(args: argparse.Namespace) -> None:
     Args:
         args: Parsed command-line arguments.
     """
-    # Import the CLI entry point
-    from research_agent.cli.commands import cli_entry
+    # Set up asyncio for Windows if needed
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    # Set the args in sys.argv for the CLI to parse
-    cli_args = []
-    if args.prefix:
-        cli_args.extend(["--prefix", args.prefix])
-
-    # Save the original argv
-    original_argv = sys.argv.copy()
-
-    try:
-        # Replace argv with our args
-        sys.argv = [sys.argv[0]] + cli_args
-
-        # Run the CLI
-        cli_entry()
-    finally:
-        # Restore the original argv
-        sys.argv = original_argv
+    # Run the async CLI function and exit with its return code
+    exit_code = asyncio.run(run_cli_async(args))
+    sys.exit(exit_code)
 
 
 def run_streamlit(args: argparse.Namespace) -> None:
@@ -155,7 +216,29 @@ def run_streamlit(args: argparse.Namespace) -> None:
     """
     # Get the path to the Streamlit app
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    app_path = os.path.join(current_dir, "research_agent", "ui", "streamlit", "app.py")
+    app_path = os.path.join(current_dir, "research_agent", "ui", "streamlit", "gemini_chat.py")
+
+    # Check if the file exists
+    if not os.path.exists(app_path):
+        print(f"Error: Streamlit app file not found at: {app_path}", file=sys.stderr)
+        print("Looking for Streamlit files in the project...", file=sys.stderr)
+
+        # Try to find any .py files in the streamlit directory
+        streamlit_dir = os.path.join(current_dir, "research_agent", "ui", "streamlit")
+        if os.path.exists(streamlit_dir):
+            py_files = [
+                f for f in os.listdir(streamlit_dir) if f.endswith(".py") and f != "__init__.py"
+            ]
+            if py_files:
+                print(f"Found potential Streamlit files: {', '.join(py_files)}", file=sys.stderr)
+                app_path = os.path.join(streamlit_dir, py_files[0])
+                print(f"Using: {app_path}", file=sys.stderr)
+            else:
+                print("No Python files found in the Streamlit directory.", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print(f"Streamlit directory not found at: {streamlit_dir}", file=sys.stderr)
+            sys.exit(1)
 
     # Run Streamlit using subprocess
     cmd = [
@@ -188,6 +271,25 @@ def main() -> None:
         run_streamlit(args)
     else:
         print(f"Unknown interface: {args.interface}", file=sys.stderr)
+        sys.exit(1)
+
+
+# Function to be used as a direct entry point for the CLI
+def cli_main():
+    """Entry point for the CLI when invoked directly as 'research_agent'."""
+    # Set up asyncio for Windows if needed
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    args = parse_args()
+    configure_logging(log_level=args.log_level, log_file=args.log_file)
+
+    # Run the CLI
+    if args.interface == "cli":
+        exit_code = asyncio.run(run_cli_async(args))
+        sys.exit(exit_code)
+    else:
+        print("Invalid command for CLI entry point", file=sys.stderr)
         sys.exit(1)
 
 
