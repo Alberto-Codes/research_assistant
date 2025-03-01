@@ -1,0 +1,22 @@
+[run]
+source = src/research_agent
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */__init__.py
+    */ui/streamlit/app.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError
+    warnings.warn
+    
+[html]
+directory = coverage_html_report 

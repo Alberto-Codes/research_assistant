@@ -15,12 +15,14 @@ research-agent = {file = ".", editable = true}
 [dev-packages]
 black = "*"
 isort = "*"
-pytest = "*"
 pytest-asyncio = "*"
 pylint = "*"
 flake8 = "*"
 bandit = "*"
 mypy = "*"
+pytest = "*"
+pytest-cov = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.13"

@@ -334,3 +334,73 @@ def test_with_mock_gemini(mock_client_class, mock_gemini_response):
 5. **Clean up after tests** - Use teardown or context managers
 6. **Mock external dependencies** - Don't call real APIs in tests
 7. **Test one thing per test** - Each test should verify one aspect of behavior 
+
+## Code Coverage
+
+The project uses `pytest-cov` (built on top of the `coverage` package) to measure code coverage during testing. This helps identify which parts of the codebase are being tested and which parts need more test coverage.
+
+### Running Tests with Coverage
+
+#### Using PowerShell Script
+
+The project provides a comprehensive PowerShell script (`run_tests.ps1`) that handles all test and coverage operations:
+
+```powershell
+# Run all tests without coverage
+.\run_tests.ps1 test
+
+# Run tests with terminal coverage report
+.\run_tests.ps1 coverage
+
+# Run tests with HTML coverage report
+.\run_tests.ps1 coverage-html
+
+# Run tests with coverage and automatically open the HTML report in browser
+.\run_tests.ps1 coverage-report
+
+# Clean up coverage files
+.\run_tests.ps1 clean
+
+# Show all available commands
+.\run_tests.ps1 help
+```
+
+This script includes all necessary functionality in one place, making it the preferred way to run tests and coverage reports.
+
+#### Manually Running Coverage
+
+If needed, you can also run the coverage commands directly:
+
+```bash
+# Run tests with terminal coverage output
+pipenv run pytest --cov=src/research_agent
+
+# Run tests with HTML report generation
+pipenv run pytest --cov=src/research_agent --cov-report=html
+```
+
+### Viewing Coverage Reports
+
+After running tests with the HTML report option, you can view the detailed coverage report by opening `coverage_html_report/index.html` in your browser. This report shows:
+
+- Overall coverage percentage
+- Coverage by module
+- Line-by-line coverage highlighting
+- Missing coverage indicators
+
+### Coverage Configuration
+
+The coverage settings are configured in two files:
+
+1. `.coveragerc` - Configures which files to include/exclude and report settings
+2. `pytest.ini` - Configures pytest coverage integration
+
+### Improving Coverage
+
+When the coverage report shows low coverage in certain modules, consider adding more tests to cover:
+
+1. Untested functions or methods
+2. Edge cases and error conditions
+3. Different code paths through conditional logic
+
+Aim for at least 80% code coverage, focusing on the core functionality and business logic of the application. 

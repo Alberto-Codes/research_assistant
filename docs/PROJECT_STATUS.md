@@ -26,6 +26,14 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Implemented Code Coverage Testing**: Added comprehensive test coverage reporting capabilities:
+  - Created PowerShell script (`run_tests.ps1`) at project root for easy test execution
+  - Configured pytest-cov for generating detailed coverage reports
+  - Added customizable coverage settings via `.coveragerc` for fine-grained control
+  - Implemented HTML report generation with browser integration
+  - Current code coverage is at 42% with identified areas for improvement
+  - Updated testing documentation to include coverage best practices
+  
 - **Integrated Document Ingestion UI**: Added document ingestion capabilities to the Streamlit interface:
   - Created a multi-page Streamlit application with navigation
   - Added a dedicated document ingestion page with file upload capabilities

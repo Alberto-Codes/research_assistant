@@ -163,6 +163,14 @@ This project follows best practices for testing, with a focus on keeping product
 - Mock clients for external services (Vertex AI)
 - Streamlit UI tests using `streamlit.testing.v1.AppTest`
 
+### Code Coverage
+- Comprehensive code coverage tracking using pytest-cov
+- PowerShell script (`run_tests.ps1`) at the project root for easy coverage testing
+- HTML report generation with browser integration
+- Current coverage is at 42% with plans for improvement
+- Customizable coverage settings via `.coveragerc`
+- Run coverage tests with `.\run_tests.ps1 coverage-report` to see detailed reports
+
 ### Mock Clients
 We've deprecated the practice of including mock implementations in production code. Instead:
 - All mock implementations are kept in test files
