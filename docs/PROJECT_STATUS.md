@@ -26,6 +26,16 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Enhanced RAG UI Testing and Fixed ChromaDB Compatibility**: Improved the testing and functionality of RAG components:
+  - Fixed the `list_collections` function in `rag_search.py` to work with the latest ChromaDB API
+  - Created comprehensive test suite for RAG search UI components
+  - Added proper tests for document ingestion and Gemini chat UI components
+  - Improved test coverage from 55% to 61% overall
+  - Significantly enhanced coverage of key modules: `rag_search.py` (0% → 76%), `gemini_chat.py` (0% → 37%), `document_ingestion.py` (0% → 22%)
+  - Fixed issues with async test methods to properly handle coroutines and return values
+  - Enhanced error handling in all UI component tests
+  - Addressed duplicate test methods causing interference
+
 - **Enhanced RAG CLI Command Testing**: Significantly improved test coverage for the RAG command module:
   - Created comprehensive test suite for the RAG CLI command module
   - Implemented tests for command registration, argument parsing, and execution flow

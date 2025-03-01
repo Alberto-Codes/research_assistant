@@ -2,7 +2,7 @@
 
 ## Implementation Status
 
-**Current Status: Mostly Complete**
+**Current Status: Nearly Complete**
 
 - ✅ **Step 1: Define Dependencies and State Models** - Completed
   - RAGDependencies and RAGState classes implemented
@@ -36,13 +36,80 @@
   - Integration with the service layer
   - Error handling and user feedback
   
-- ❌ **Step 6: Streamlit UI Integration** - Not started
+- ✅ **Step 6: Streamlit UI Infrastructure** - Partially Completed
+  - Basic UI components created for RAG search in `ui/streamlit/rag_search.py`
+  - `list_collections` function fixed to work with latest ChromaDB API
+  - `execute_rag_query` function implemented to connect UI with backend services
+  - Comprehensive test suite created with 76% coverage for the rag_search module
+  - Basic UI rendering functionality implemented
+  - Still need to complete integration with the main navigation
+  
 - ❌ **Step 7: Update Main Entry Points** - Not started
 
 **Next Steps:**
-1. Add a Streamlit UI page for RAG queries
-2. Update main entry points to include the RAG command
-3. Add more comprehensive user documentation
+1. Complete the Streamlit RAG UI page integration with the main navigation
+2. Improve async test structure to eliminate remaining warnings:
+   - Refactor unittest-style async tests to pure pytest-style to avoid coroutine warnings
+   - Properly implement async tests to ensure coroutines are awaited correctly
+   - Address the deprecation warnings related to test functions returning non-None values
+3. Update main entry points to include the RAG UI page in navigation
+4. Add comprehensive user documentation for RAG functionality
+
+## Test Suite Improvements
+
+The test suite has been substantially improved, but there are still some issues to resolve around async testing:
+
+### Current Test Structure Issues
+
+The current test implementation mixes unittest-style tests with pytest's asyncio functionality, leading to warnings:
+
+1. **Coroutine Warnings**: Test methods decorated with `@pytest.mark.asyncio` are not being properly awaited within the unittest framework:
+   ```
+   RuntimeWarning: coroutine 'TestClass.test_async_method' was never awaited
+   ```
+
+2. **Deprecation Warnings**: Test methods returning values (common in async tests) trigger unittest deprecation warnings:
+   ```
+   DeprecationWarning: It is deprecated to return a value that is not None from a test case
+   ```
+
+### Proposed Solutions
+
+1. **Convert to Pure Pytest**: Transition from unittest.TestCase classes to pure pytest-style test functions for async tests:
+   ```python
+   # Instead of:
+   class TestClass(unittest.TestCase):
+       @pytest.mark.asyncio
+       async def test_method(self):
+           # test code
+           return None
+   
+   # Use:
+   @pytest.mark.asyncio
+   async def test_function():
+       # test code
+       # No need to return None
+   ```
+
+2. **Proper Awaiting of Async Methods**: Ensure all async methods are properly awaited within the test runner:
+   ```python
+   # For any tests that must remain in unittest style:
+   class TestClass(unittest.TestCase):
+       def test_method(self):
+           result = asyncio.run(self._async_test_implementation())
+           self.assertEqual(result, expected_value)
+       
+       async def _async_test_implementation(self):
+           # Async test code here
+           return result
+   ```
+
+3. **Consistent Async Pattern**: Establish a consistent pattern for async testing throughout the codebase:
+   - Use `@pytest.mark.asyncio` only with pytest-style test functions, not unittest methods
+   - Explicitly use `asyncio.run()` in unittest test methods that need to call async code
+   - Never return non-None values from unittest test methods
+
+These improvements will help eliminate the remaining warnings and make the test suite more maintainable.
 
 This document outlines the implementation plan for integrating ChromaDB with Gemini using pydantic-graph to create a powerful RAG (Retrieval Augmented Generation) system.
 
@@ -290,48 +357,143 @@ def handle_command(args):
     asyncio.run(run_command(args))
 ```
 
-### 6. Streamlit UI Integration
+### 6. Streamlit UI Infrastructure
 
-Add a RAG page to your Streamlit UI:
+The RAG UI infrastructure has been partially implemented with the following components:
 
 ```python
-# In ui/pages/rag_search.py
+# In ui/streamlit/rag_search.py
 import streamlit as st
 import asyncio
-from research_agent.services import run_rag_query
+import chromadb
+from pydantic_ai.models.vertexai import VertexAIModel
+from pydantic_ai.models.agent import Agent
+from research_agent.core.rag.graph import run_rag_query
 
-def render_rag_page():
+def list_collections(chroma_dir="./chroma_db"):
+    """List available collections in ChromaDB."""
+    try:
+        client = chromadb.PersistentClient(path=chroma_dir)
+        return client.list_collections()
+    except Exception as e:
+        st.error(f"Error listing collections: {e}")
+        return []
+
+async def execute_rag_query(
+    query: str,
+    collection_name: str = "my_docs",
+    chroma_dir: str = "./chroma_db",
+    project_id: str = None,
+    model_name: str = "gemini-1.5-pro",
+    region: str = "us-central1"
+):
+    """Execute a RAG query and return results."""
+    try:
+        # Initialize ChromaDB
+        client = chromadb.PersistentClient(path=chroma_dir)
+        collection = client.get_collection(collection_name)
+        
+        # Check if the collection has documents
+        doc_count = collection.count()
+        if doc_count == 0:
+            return {
+                "answer": "Collection is empty. Please ingest documents first.",
+                "retrieval_time": 0,
+                "generation_time": 0,
+                "total_time": 0
+            }
+        
+        # Initialize the Gemini model and agent
+        vertex_model = VertexAIModel(
+            model_name=model_name, 
+            project_id=project_id,
+            region=region
+        )
+        agent = Agent(vertex_model)
+        
+        # Run the RAG query
+        result = await run_rag_query(
+            query=query,
+            chroma_collection=collection,
+            gemini_model=agent,
+            project_id=project_id
+        )
+        
+        return result
+        
+    except Exception as e:
+        return {
+            "answer": f"Error executing query: {str(e)}",
+            "retrieval_time": 0,
+            "generation_time": 0,
+            "total_time": 0
+        }
+
+def render_rag_search_ui():
+    """Render the RAG search UI."""
     st.title("Document Search with RAG")
     
     # Sidebar configuration
     with st.sidebar:
         st.header("Configuration")
-        collection_name = st.text_input("Collection Name", value="my_docs")
         chroma_dir = st.text_input("ChromaDB Directory", value="./chroma_db")
-        project_id = st.text_input("Google Cloud Project ID (optional)")
+        
+        # List available collections
+        collections = list_collections(chroma_dir)
+        if collections:
+            collection_name = st.selectbox(
+                "Select Collection", 
+                options=collections,
+                index=0
+            )
+        else:
+            st.warning("No collections found. Please ingest documents first.")
+            collection_name = ""
+        
+        # Advanced options
+        with st.expander("Advanced Options"):
+            project_id = st.text_input("Google Cloud Project ID (optional)")
+            model_name = st.selectbox(
+                "Model", 
+                options=["gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro"],
+                index=0
+            )
+            region = st.text_input("Region", value="us-central1")
     
-    # Main query area
-    query = st.text_area("Enter your question:", height=100)
+    # Query input area
+    query = st.text_area("Enter your question about the documents:", height=100)
     
-    # Only show search button if query is not empty
+    # Check if we can perform a search
+    can_search = collections and query
+    
     if query:
-        if st.button("Search", type="primary"):
+        if st.button("Search Documents", disabled=not can_search):
             with st.spinner("Searching documents and generating answer..."):
-                # Run the RAG query
-                result = asyncio.run(run_rag_query(
+                # Execute the query
+                result = asyncio.run(execute_rag_query(
                     query=query,
                     collection_name=collection_name,
                     chroma_dir=chroma_dir,
-                    project_id=project_id
+                    project_id=project_id,
+                    model_name=model_name,
+                    region=region
                 ))
                 
-                # Display results
+                # Display the answer
                 st.markdown("### Answer")
                 st.markdown(result["answer"])
                 
-                # Show execution metrics
-                st.info(f"Query processed in {result['execution_time']:.2f} seconds")
+                # Display metrics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Retrieval Time", f"{result['retrieval_time']:.2f}s")
+                with col2:
+                    st.metric("Generation Time", f"{result['generation_time']:.2f}s")
+                with col3:
+                    st.metric("Total Time", f"{result['total_time']:.2f}s")
 ```
+
+To complete the UI integration, the component will need to be registered in the main Streamlit application and added to the navigation.
 
 ### 7. Update Main Entry Points
 
