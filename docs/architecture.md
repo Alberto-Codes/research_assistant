@@ -10,9 +10,9 @@ The Research Agent is built on a workflow system that processes information thro
 flowchart TD
     User((User)) --> |Request| Interfaces
     Interfaces[Interfaces\nCLI, Streamlit, API] --> |Initialize| Graph[Research Graph]
-    Graph --> |Execute| Nodes[Node Collection\nHelloNode, WorldNode, etc.]
+    Graph --> |Execute| Nodes[Node Collection\nQueryNode, RetrieveNode, AnswerNode, ChromaDBIngestionNode]
     Nodes --> |Update| State[State Management]
-    Deps[Dependencies\nLLM Clients, etc.] --> |Provide Services| Nodes
+    Deps[Dependencies\nLLM Clients, ChromaDB] --> |Provide Services| Nodes
     State --> |Progress| Graph
     Graph --> |Generate| Results((Research Results))
     Results --> |Deliver| User
@@ -74,11 +74,16 @@ flowchart TD
 
 1. The process begins with a user request through one of the interfaces
 2. The request is translated into a workflow with an initial state
-3. The graph engine executes the nodes in sequence:
-   - **HelloNode** generates the initial text
-   - **WorldNode** generates additional text
-   - **CombineNode** merges the generated texts
-   - **PrintNode** outputs the final result
+3. The graph engine executes the nodes in sequence based on the workflow type:
+
+   For RAG (Retrieval Augmented Generation):
+   - **QueryNode** processes the initial user query
+   - **RetrieveNode** retrieves relevant documents from ChromaDB
+   - **AnswerNode** generates an answer using Gemini based on retrieved documents
+
+   For Document Ingestion:
+   - **ChromaDBIngestionNode** processes documents and stores them in ChromaDB
+
 4. Each node updates the state and passes it to the next node
 5. When the workflow completes, the result is returned to the user
 
@@ -146,15 +151,26 @@ src/
 │   │   ├── dependencies.py  # Dependency injection definitions
 │   │   ├── graph.py         # Graph definition
 │   │   ├── nodes.py         # Node definitions
-│   │   └── state.py         # State class definition
+│   │   ├── state.py         # State class definition
+│   │   ├── document/        # Document ingestion components
+│   │   │   ├── dependencies.py  # ChromaDB dependencies
+│   │   │   ├── graph.py         # Document ingestion graph
+│   │   │   ├── nodes.py         # ChromaDBIngestionNode
+│   │   │   └── state.py         # Document state
+│   │   └── rag/             # RAG components
+│   │       ├── dependencies.py  # RAG dependencies
+│   │       ├── graph.py         # RAG graph definition
+│   │       ├── nodes.py         # QueryNode, RetrieveNode, AnswerNode
+│   │       └── state.py         # RAG state
 │   ├── api/
 │   │   └── services.py      # Service functions for interfaces
 │   ├── cli/
 │   │   └── commands.py      # CLI functionality
 │   └── ui/
 │       ├── streamlit/       # Streamlit web UI
-│       │   ├── app.py       # Hello World Streamlit application
-│       │   └── gemini_chat.py # Gemini Chat interface
+│       │   ├── app.py       # Multi-page Streamlit application
+│       │   ├── gemini_chat.py # Gemini Chat interface
+│       │   └── document_ingestion.py # Document ingestion interface
 │       └── cli_entry.py     # Entry point for UI applications
 ```
 

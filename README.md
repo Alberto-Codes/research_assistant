@@ -16,6 +16,7 @@ This project implements an AI agent using Pydantic Graph and integrates with Goo
 - Document ingestion capabilities for knowledge retrieval
 - Multi-page UI with both chat and document management
 - Unified entry point for both CLI and UI interfaces
+- Retrieval Augmented Generation (RAG) for document-based question answering
 
 ## Installation
 
@@ -74,6 +75,36 @@ Options:
 - `--data-dir`: Directory containing documents to ingest (required)
 - `--collection`: Name of the ChromaDB collection to use (required)
 - `--chroma-dir`: Directory where ChromaDB data should be persisted (default: "./chroma_db")
+
+### RAG Queries
+
+You can query your document collections using Retrieval Augmented Generation (RAG):
+
+```
+research_agent rag --query "Your question about documents" --collection "my_collection" [--chroma-dir "./chroma_db"]
+```
+
+Options:
+- `--query`: The question to ask about your documents (required)
+- `--collection`: Name of the ChromaDB collection to query (required)
+- `--chroma-dir`: Directory where ChromaDB data is stored (default: "./chroma_db")
+- `--project-id`: Google Cloud project ID (optional)
+
+Examples:
+
+```bash
+# Basic usage
+research_agent rag --query "What information is in my documents about machine learning?"
+
+# Querying a specific collection
+research_agent rag --query "Summarize the documents" --collection "research_papers"
+```
+
+The RAG system will:
+1. Retrieve relevant documents based on your query
+2. Provide the document context to the Gemini model
+3. Generate an answer that cites the relevant documents
+4. Display timing metrics for retrieval and generation
 
 ### Streamlit UI Interface
 
@@ -236,15 +267,19 @@ We use `pre-commit` hooks to run these tools automatically before each commit. T
 
 ```bash
 # Install all development dependencies
-make setup
+pipenv install --dev
 
-# Run all quality checks manually
-make quality
+# Run tests
+.\run_tests.ps1 test
 
-# Run individual checks
-make format     # Format code with black and isort
-make lint       # Run all linters
-make security   # Run security checks
+# Run coverage tests with report
+.\run_tests.ps1 coverage-report
+
+# Run CLI tests
+.\run_cli.ps1 all
+
+# Run UI
+.\run_ui.ps1
 ```
 
 ### Error Handling
@@ -276,14 +311,28 @@ Logging features include:
 
 ## Graph-Based Workflow
 
-The project uses `pydantic-graph` to create a workflow with connected nodes:
+The project uses `pydantic-graph` to create workflows with connected nodes:
 
-1. `HelloNode` - Generates the text "Hello"
-2. `WorldNode` - Generates the text "World"
-3. `CombineNode` - Combines the texts to create "Hello World!"
-4. `PrintNode` - Prints the final result and ends the graph execution
+### RAG (Retrieval Augmented Generation) Workflow
 
-Each node runs in sequence, passing its state to the next node in the graph.
+The RAG workflow consists of three main nodes:
+
+1. `QueryNode` - Processes the user's query
+2. `RetrieveNode` - Retrieves relevant documents from ChromaDB based on the query
+3. `AnswerNode` - Generates an answer using Gemini based on retrieved documents and query
+
+The RAG workflow provides:
+- Document-grounded responses based on your data
+- Automatic citation of sources
+- Detailed timing metrics for performance analysis
+- Robust error handling with graceful fallbacks
+
+### Document Ingestion Workflow
+
+The document ingestion workflow uses:
+1. `ChromaDBIngestionNode` - Processes and stores documents in the vector database
+
+Each workflow executes its nodes in sequence, maintaining state between nodes to pass information through the graph.
 
 ## Document Management
 

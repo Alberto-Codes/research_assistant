@@ -21,6 +21,32 @@ The example demonstrates a simple end-to-end RAG implementation with the followi
 3. **Retrieval Tool**: A Pydantic AI tool that searches for relevant documents based on semantic similarity
 4. **RAG Agent**: An Agent instance that uses the retrieval tool to augment its responses
 
+## Research Agent RAG Implementation
+
+In the Research Agent project, we've implemented a comprehensive RAG system using Pydantic-Graph:
+
+1. **Graph-Based Workflow**: The RAG process is implemented as a graph with three nodes:
+   - **QueryNode**: Handles the initial user query
+   - **RetrieveNode**: Retrieves relevant documents from ChromaDB
+   - **AnswerNode**: Generates an answer using Gemini based on retrieved documents
+
+2. **Robust Handling**: The implementation includes:
+   - Detailed timing metrics for retrieval and generation phases
+   - Comprehensive error handling for document retrieval and answer generation 
+   - Support for both synchronous and asynchronous document retrieval
+   - Fallback mechanisms for missing source information
+   - 100% test coverage with comprehensive test cases
+
+3. **CLI Integration**: Easy access through the command line:
+   ```
+   research_agent rag --query "Your question" --collection "your_collection"
+   ```
+
+4. **Performance Metrics**: Each RAG query returns detailed timing information:
+   - Retrieval time (how long it took to find relevant documents)
+   - Generation time (how long it took the model to generate an answer)
+   - Total execution time (end-to-end processing time)
+
 ## Requirements
 
 To run this example, you'll need the following packages:
@@ -65,10 +91,23 @@ This will:
 - Scale from local development to production deployment
 
 ChromaDB is a great choice for RAG applications because:
+
 - It handles the embedding generation automatically
 - It provides efficient vector search capabilities
 - It supports multiple embedding models
 - It can be run in-memory for development or persisted for production
+
+## Recent Improvements in Research Agent
+
+Our latest updates to the Research Agent RAG system include:
+
+- Enhanced RetrieveNode with improved coroutine handling for various query responses
+- Added robust error handling for awaitable results in document retrieval
+- Fixed mock function signatures in tests to properly align with pydantic-graph Graph.run method
+- Improved debug logging throughout the RAG workflow for better troubleshooting
+- Updated ChromaDB integration to handle API updates in version 0.6.0
+- Added source field fallback to use filename when source is not available
+- Enhanced document citation for better content attribution
 
 ## Extending the Example
 
@@ -84,4 +123,5 @@ Here are some ways you could extend this example:
 
 For more information:
 - [Pydantic AI Documentation](https://ai.pydantic.dev/)
-- [ChromaDB Documentation](https://docs.trychroma.com/docs/overview/introduction) 
+- [ChromaDB Documentation](https://docs.trychroma.com/docs/overview/introduction)
+- [Research Agent Documentation](../docs/next_steps.md) 

@@ -112,7 +112,7 @@ All contributions must adhere to the project's quality standards:
 Run the following to ensure your code meets our standards:
 
 ```bash
-make quality
+.\run_tests.ps1 test
 ```
 
 ## UI Testing Guidelines

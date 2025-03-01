@@ -142,6 +142,16 @@ You can customize how the Research Agent works:
 
 ## Example Workflows
 
+### Example Workflow
+
+Here's an example of how the Research Agent processes a query:
+
+1. You submit a query about your documents: "What information do my documents contain about machine learning?"
+2. The QueryNode processes your query and prepares for document retrieval
+3. The RetrieveNode searches ChromaDB for relevant documents
+4. The AnswerNode generates a comprehensive answer based on the retrieved documents
+5. You receive a detailed response with citations to the source documents
+
 ### Basic Research Example
 
 1. Start the web interface with `research_agent --app streamlit`

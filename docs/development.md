@@ -20,7 +20,7 @@ This guide provides information for developers who want to contribute to the Res
 
 2. **Install development dependencies**:
    ```bash
-   make setup
+   pipenv install --dev
    ```
    
    This will:
@@ -30,7 +30,7 @@ This guide provides information for developers who want to contribute to the Res
 
 3. **Verify your setup**:
    ```bash
-   make quality
+   .\run_tests.ps1 test
    ```
    
    This runs all quality checks to ensure your environment is correctly configured.
@@ -41,21 +41,33 @@ The project is organized as follows:
 
 ```
 src/
-├── research_agent/             # Main package
-│   ├── core/                # Core business logic
+├── __init__.py
+├── research_agent/
+│   ├── __init__.py
+│   ├── core/
 │   │   ├── dependencies.py  # Dependency injection definitions
 │   │   ├── graph.py         # Graph definition
-│   │   ├── logging_config.py # Centralized logging configuration
 │   │   ├── nodes.py         # Node definitions
-│   │   └── state.py         # State class definition
-│   ├── api/                 # API layer
+│   │   ├── state.py         # State class definition
+│   │   ├── document/        # Document ingestion components
+│   │   │   ├── dependencies.py  # ChromaDB dependencies
+│   │   │   ├── graph.py         # Document ingestion graph
+│   │   │   ├── nodes.py         # ChromaDBIngestionNode
+│   │   │   └── state.py         # Document state
+│   │   └── rag/             # RAG components
+│   │       ├── dependencies.py  # RAG dependencies
+│   │       ├── graph.py         # RAG graph definition
+│   │       ├── nodes.py         # QueryNode, RetrieveNode, AnswerNode
+│   │       └── state.py         # RAG state
+│   ├── api/
 │   │   └── services.py      # Service functions for interfaces
-│   ├── cli/                 # Command-line interface
+│   ├── cli/
 │   │   └── commands.py      # CLI functionality
-│   └── ui/                  # User interface layer
+│   └── ui/
 │       ├── streamlit/       # Streamlit web UI
-│       │   ├── app.py       # Hello World Streamlit application
-│       │   └── gemini_chat.py # Gemini Chat interface
+│       │   ├── app.py       # Multi-page Streamlit application
+│       │   ├── gemini_chat.py # Gemini Chat interface
+│       │   └── document_ingestion.py # Document ingestion interface
 │       └── cli_entry.py     # Entry point for UI applications
 tests/                       # Test directory
 ├── research_agent/             # Tests for the research_agent package
@@ -95,7 +107,7 @@ When working on changes:
 Before submitting your pull request, ensure your code meets our quality standards:
 
 ```bash
-make quality
+.\run_tests.ps1 test
 ```
 
 This will run all formatters, linters, security checks, tests, and documentation checks.
@@ -104,7 +116,7 @@ This will run all formatters, linters, security checks, tests, and documentation
 
 1. **Run all tests**:
    ```bash
-   make test
+   .\run_tests.ps1 test
    ```
 
 2. **Run specific tests**:
@@ -489,7 +501,7 @@ Currently, documentation is in Markdown format. We may implement a documentation
 
 1. **Ensure all tests pass**:
    ```bash
-   make quality
+   .\run_tests.ps1 test
    ```
 
 2. **Update version numbers**:
@@ -517,3 +529,49 @@ If you need assistance with development:
 2. Look at the code comments and docstrings
 3. Examine the tests for examples
 4. Reach out to the maintainers for guidance 
+
+## Setup Environment
+
+To set up your development environment, follow these steps:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd research_agent
+
+# Install dependencies with pipenv
+pipenv install --dev
+
+# Run tests to verify your setup
+.\run_tests.ps1 test
+```
+
+## Testing
+
+We use pytest for our testing framework. To run the tests:
+
+```bash
+# Run all tests
+.\run_tests.ps1 test
+
+# Run specific tests
+pipenv run python -m pytest tests/specific_test_file.py
+
+# Run tests with coverage
+.\run_tests.ps1 coverage
+
+# Generate HTML coverage report and open in browser
+.\run_tests.ps1 coverage-report
+```
+
+## Code Quality
+
+To ensure consistent code quality, run our standard checks before submitting:
+
+```bash
+# Run all quality checks
+.\run_tests.ps1 test
+
+# Check code coverage
+.\run_tests.ps1 coverage-report
+``` 

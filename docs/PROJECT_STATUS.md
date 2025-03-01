@@ -10,13 +10,13 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### What Works Now
 
-- **Core Functionality**: The system is fully operational, with a "Hello World" example that demonstrates the pipeline structure.
+- **Core Functionality**: The system is fully operational, with a RAG (Retrieval Augmented Generation) system that demonstrates the pipeline structure for document-based query answering.
 - **Graph System**: Successfully implemented using the `pydantic-graph` library (version 0.0.30).
 - **Multiple Interfaces**: Users can interact with the tool through:
   - Command-line interface (for technical users)
   - Web interface built with Streamlit (for visual interaction)
   - Gemini Chat interface with streaming responses
-- **Node Structure**: Properly implemented nodes (HelloNode, WorldNode, CombineNode, PrintNode) with clean execution flow.
+- **Node Structure**: Properly implemented nodes (QueryNode, RetrieveNode, AnswerNode, ChromaDBIngestionNode) with clean execution flow.
 - **State Management**: Robust implementation for passing state between nodes with detailed tracking.
 - **Error Handling**: Comprehensive error detection and reporting throughout the node execution process.
 - **Testing Framework**: Comprehensive tests ensure the system works as expected.
@@ -95,7 +95,7 @@ Think of it as a pipeline where information flows through different stations (or
   - Fixed event loop handling to support multi-turn conversations
   - Enhanced error handling and recovery
 - **Fixed entry point issues**: Corrected the entry point in `setup.py` to use `cli_entry` instead of `main` for proper async execution.
-- **Resolved node implementation conflicts**: Removed duplicate `HelloNode` class definition in `services.py` that was causing conflicts.
+- **Resolved node implementation conflicts**: Removed duplicate node class definitions in `services.py` that were causing conflicts.
 - **Enhanced error detection**: Added validation in the `_measure_execution_time` decorator to catch invalid node return types.
 - **Improved dependency handling**: Added fallback imports and better error handling for optional dependencies.
 - **Streamlined services layer**: Refactored the API services to use the core implementations more effectively.
@@ -135,6 +135,17 @@ Think of it as a pipeline where information flows through different stations (or
   - Created comprehensive tests for CLI command modules
   - Added proper Python package structure for test modules
   - Overall project code coverage improved from 53% to 56%
+
+- **Improved RAG Testing and Robustness**: Enhanced the Retrieval Augmented Generation system with comprehensive improvements:
+  - Fixed mock function signatures in tests to properly align with pydantic-graph Graph.run method
+  - Enhanced RetrieveNode with improved coroutine handling for various query responses
+  - Added robust error handling for awaitable results in document retrieval
+  - Fixed assertion methods in RetrieveNode tests to properly handle real async functions
+  - Improved debug logging throughout the RAG workflow for better troubleshooting
+  - All RAG-related tests now pass successfully with 100% coverage
+  - Updated ChromaDB integration to handle API updates in version 0.6.0
+  - Added source field fallback to use filename when source is not available
+  - Enhanced document citation for better content attribution
 
 ### Recent Updates
 
@@ -185,7 +196,8 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Known Limitations
 
-- The research capabilities are limited to the "Hello World" example
+- The research capabilities include Retrieval Augmented Generation (RAG) to answer questions based on document collections
+- Document ingestion pipeline for building ChromaDB collections
 - Performance optimizations for larger workloads haven't been implemented yet
 
 ## Execution Flow
@@ -300,3 +312,5 @@ The Gemini Chat interface is now fully operational with streaming responses and 
 The main entry points have been consolidated to eliminate redundancy and improve maintainability. The `src/main.py` file now serves as the single source of truth for launching both the CLI and the Streamlit UI, making it easier to add new interfaces or commands in the future. 
 
 The RAG (Retrieval Augmented Generation) system has seen significant progress with the implementation of core graph nodes and workflow. The RAG modules now provide a robust foundation for question answering based on document context, with comprehensive test coverage and detailed performance metrics. The implementation follows best practices with proper error handling, logging, and a clear separation of concerns. With the graph structure in place, the system is ready for integration into the CLI and UI interfaces, which will provide users with powerful document-based question answering capabilities. 
+
+The graph-based workflow architecture is proven and ready for enhancement with additional node types and capabilities beyond the RAG implementation. 
