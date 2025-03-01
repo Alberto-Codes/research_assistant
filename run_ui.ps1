@@ -21,9 +21,19 @@ if (-not (Test-Path env:GOOGLE_APPLICATION_CREDENTIALS)) {
     Write-Host ""
 }
 
-# Run the UI application
+# Get the path to the Streamlit app
+$streamlitAppPath = Join-Path -Path (Get-Location) -ChildPath "src\research_agent\ui\streamlit\gemini_chat.py"
+
+# Verify file exists
+if (-not (Test-Path $streamlitAppPath)) {
+    Write-Host "Error: Streamlit application file not found at: $streamlitAppPath" -ForegroundColor Red
+    exit 1
+}
+
+# Run Streamlit directly
 try {
-    pipenv run python -m research_agent ui --port $Port
+    Write-Host "Running Streamlit app from: $streamlitAppPath"
+    pipenv run streamlit run $streamlitAppPath --server.port $Port
 }
 catch {
     Write-Host "Error launching the UI: $_" -ForegroundColor Red

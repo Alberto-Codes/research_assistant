@@ -22,6 +22,9 @@ from research_agent.core.gemini.nodes import GeminiAgentNode
 # Import state classes
 from research_agent.core.gemini.state import GeminiState
 
+# Import main entry points
+from research_agent.main import cli_entry, main
+
 __all__ = [
     # Nodes
     "GeminiAgentNode",
@@ -35,4 +38,7 @@ __all__ = [
     "GeminiDependencies",
     "LLMClient",
     "GeminiLLMClient",
+    # Entry points
+    "main",
+    "cli_entry",
 ]

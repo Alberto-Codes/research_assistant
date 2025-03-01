@@ -1,61 +1,37 @@
 """
-Command-line entry point for the Research Agent application.
+DEPRECATED: Command-line entry point for the Research Agent application.
 
-This module provides the command-line entry point for running the
-Research Agent's Gemini chat interface.
+This module is deprecated and will be removed in a future version.
+Please use research_agent.main instead:
+
+    from research_agent.main import main
+    main()
+
+Or run the package directly:
+
+    python -m research_agent
 """
 
-import argparse
-import os
-import subprocess
+import warnings
 import sys
-from pathlib import Path
 
+# Show deprecation warning
+warnings.warn(
+    "The research_agent.ui.cli_entry module is deprecated. "
+    "Please use research_agent.main instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-def get_streamlit_script_path(script_name: str) -> str:
-    """
-    Get the absolute path to a Streamlit script file.
+# Import the main function with an alias to avoid name collision
+from research_agent.main import main as main_func
 
-    Args:
-        script_name: The name of the script file without the path.
-
-    Returns:
-        The absolute path to the script file.
-    """
-    # Get the directory of this file
-    current_dir = Path(__file__).parent.resolve()
-
-    # Construct the path to the Streamlit script
-    streamlit_dir = current_dir / "streamlit"
-    script_path = streamlit_dir / script_name
-
-    # Check if the file exists
-    if not script_path.exists():
-        raise FileNotFoundError(f"Could not find Streamlit script at {script_path}")
-
-    return str(script_path)
-
-
+# For backward compatibility
 def run_gemini_chat():
-    """Run the Gemini chat Streamlit app."""
-    streamlit_path = get_streamlit_script_path("gemini_chat.py")
-    subprocess.run(["streamlit", "run", streamlit_path])
+    """Run the Gemini chat Streamlit app using the new main module."""
+    main_func(["ui"])
 
-
+# For backward compatibility
 def main():
-    """Command-line entry point for the Research Agent application.
-
-    This function parses command-line arguments and runs the
-    Gemini chat Streamlit application.
-    """
-    parser = argparse.ArgumentParser(description="Run the Research Agent's Gemini chat interface.")
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Run the Gemini chat application
-    run_gemini_chat()
-
-
-if __name__ == "__main__":
-    main()
+    """Command-line entry point using the new main module."""
+    main_func()

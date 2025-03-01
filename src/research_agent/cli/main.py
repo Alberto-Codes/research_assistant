@@ -1,11 +1,15 @@
 """
-Main command-line interface for Research Agent.
+DEPRECATED: Main command-line interface for Research Agent.
 
-This module provides the main entry point for the Research Agent CLI,
-coordinating all available commands.
+This module is deprecated and will be removed in a future version.
+Please use research_agent.main instead:
 
-DEPRECATED: This module is kept for backward compatibility.
-Please use the top-level main.py module instead.
+    from research_agent.main import main
+    main()
+
+Or run the package directly:
+
+    python -m research_agent
 """
 
 import argparse
@@ -19,10 +23,10 @@ from research_agent.cli.commands.gemini import add_gemini_command
 from research_agent.cli.commands.ingest import add_ingest_command
 from research_agent.core.logging_config import configure_logging
 
-# Show deprecation warning
+# Show more prominent deprecation warning
 warnings.warn(
     "The research_agent.cli.main module is deprecated. "
-    "Please use the top-level main module instead.",
+    "Please use research_agent.main instead.",
     DeprecationWarning,
     stacklevel=2,
 )
@@ -128,4 +132,6 @@ def cli_entry() -> None:
 
 
 if __name__ == "__main__":
-    cli_entry()
+    # Import here to avoid circular imports
+    import sys
+    sys.exit(asyncio.run(main_async()))

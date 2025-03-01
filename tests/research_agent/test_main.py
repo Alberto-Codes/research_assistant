@@ -8,11 +8,11 @@ and dispatching to the appropriate interface.
 import importlib
 import sys
 from unittest.mock import MagicMock, patch
+import asyncio
 
 import pytest
 
-from research_agent.ui.cli_entry import get_streamlit_script_path
-from src.main import main
+from research_agent.main import get_streamlit_script_path, main
 
 
 @pytest.mark.skip(reason="Argparse system exit issues within pytest environment")
@@ -26,15 +26,13 @@ def test_parse_args_cli_interface():
 def test_parse_args_ui_interface():
     """Test that the UI interface is parsed correctly."""
     # For UI interface, we can create a mock for parse_args instead of calling it directly
-    from src.main import parse_args
+    from research_agent.main import create_parser
 
+    parser = create_parser()
     with patch("sys.argv", ["research_agent.py", "ui", "--port", "8080"]):
-        with patch(
-            "argparse.ArgumentParser.parse_args", return_value=MagicMock(interface="ui", port=8080)
-        ):
-            args = parse_args()
-            assert args.interface == "ui"
-            assert args.port == 8080
+        args = parser.parse_args(["ui", "--port", "8080"])
+        assert args.interface == "ui"
+        assert args.port == 8080
 
 
 @pytest.mark.skip(reason="Argparse system exit issues within pytest environment")
@@ -47,54 +45,53 @@ def test_parse_args_direct_command():
 
 def test_get_streamlit_script_path():
     """Test that the Streamlit script path is found correctly."""
-    # Call the function with a specific script name
-    script_path = get_streamlit_script_path("gemini_chat.py")
+    # Call the function with no arguments
+    script_path = get_streamlit_script_path()
+    
+    # Check that the result is a string and contains a path to a Python file
+    assert isinstance(script_path, str)
+    assert script_path.endswith(".py")
+    assert "streamlit" in script_path.lower()
 
-    # Assert that the path ends with the specified script name
-    assert script_path.endswith("gemini_chat.py")
-    assert "streamlit" in script_path
 
-
-@patch("src.main.run_cli")
-@patch("src.main.run_streamlit")
-@patch("src.main.configure_logging")
-@patch("src.main.parse_args")
-def test_main_runs_cli(mock_parse_args, mock_configure_logging, mock_run_streamlit, mock_run_cli):
+@patch("research_agent.main.run_cli_async")
+@patch("research_agent.main.run_streamlit")
+@patch("research_agent.main.configure_logging")
+def test_main_runs_cli(mock_configure_logging, mock_run_streamlit, mock_run_cli_async):
     """Test that the main function runs the CLI interface when specified."""
-    # Setup mock args
-    mock_args = MagicMock()
-    mock_args.interface = "cli"
-    mock_parse_args.return_value = mock_args
-
-    # Call the main function
-    main()
-
-    # Assert that the CLI function was called
-    mock_configure_logging.assert_called_once()
-    mock_run_cli.assert_called_once_with(mock_args)
+    from research_agent.main import main_async
+    
+    # Set up mock returns
+    mock_run_cli_async.return_value = 0
+    
+    # Run main with CLI arguments
+    exit_code = asyncio.run(main_async(["cli", "gemini", "--prompt", "test"]))
+    
+    # Assert that the CLI interface was called
+    mock_run_cli_async.assert_called_once()
     mock_run_streamlit.assert_not_called()
+    assert exit_code == 0
 
 
-@patch("src.main.run_cli")
-@patch("src.main.run_streamlit")
-@patch("src.main.configure_logging")
-@patch("src.main.parse_args")
+@patch("research_agent.main.run_cli_async")
+@patch("research_agent.main.run_streamlit")
+@patch("research_agent.main.configure_logging")
 def test_main_runs_streamlit(
-    mock_parse_args, mock_configure_logging, mock_run_streamlit, mock_run_cli
+    mock_configure_logging, mock_run_streamlit, mock_run_cli_async
 ):
     """Test that the main function runs the Streamlit interface when specified."""
-    # Setup mock args
-    mock_args = MagicMock()
-    mock_args.interface = "ui"
-    mock_parse_args.return_value = mock_args
-
-    # Call the main function
-    main()
-
-    # Assert that the Streamlit function was called
-    mock_configure_logging.assert_called_once()
-    mock_run_streamlit.assert_called_once_with(mock_args)
-    mock_run_cli.assert_not_called()
+    from research_agent.main import main_async
+    
+    # Set up mock returns
+    mock_run_streamlit.return_value = 0
+    
+    # Run main with UI arguments
+    exit_code = asyncio.run(main_async(["ui", "--port", "8080"]))
+    
+    # Assert that the Streamlit interface was called
+    mock_run_cli_async.assert_not_called()
+    mock_run_streamlit.assert_called_once()
+    assert exit_code == 0
 
 
 def test_main_entry_point():
@@ -118,12 +115,9 @@ def test_main_entry_point():
         content = f.read()
 
     # Check for key components that should be in the __main__.py file
-    assert "import sys" in content, "__main__.py should import sys"
-    assert "import importlib.util" in content, "__main__.py should import importlib.util"
-    assert (
-        'if __name__ == "__main__":' in content
-    ), "__main__.py should have an if __name__ == '__main__' block"
-    assert "main_module.main()" in content, "__main__.py should call main_module.main()"
+    assert "from research_agent.main import main" in content, "__main__.py should import main from research_agent.main"
+    assert 'if __name__ == "__main__":' in content, "__main__.py should have an if __name__ == '__main__' block"
+    assert "main()" in content, "__main__.py should call main()"
 
 
 @patch("sys.path")

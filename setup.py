@@ -49,7 +49,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "research_agent=research_agent.cli.main:cli_entry",
+            "research_agent=research_agent.main:cli_entry",
         ],
     },
 )
