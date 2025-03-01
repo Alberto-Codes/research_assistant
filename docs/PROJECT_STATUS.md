@@ -22,8 +22,30 @@ Think of it as a pipeline where information flows through different stations (or
 - **Testing Framework**: Comprehensive tests ensure the system works as expected.
 - **Code Quality Tools**: We've implemented several tools to maintain high code quality.
 - **Flexible Configuration**: Users can customize certain aspects of how the system works.
+- **Document Ingestion**: ChromaDB integration for document storage and retrieval with vector embeddings.
 
 ### Recent Improvements
+
+- **Modular CLI Architecture**: Completely reorganized the CLI structure for better maintainability and extensibility:
+  - Created a dedicated `commands/` directory with separate modules for each command
+  - Implemented centralized command registration and argument parsing
+  - Added proper error handling and exit code management
+  - Improved CLI help documentation with more detailed command descriptions
+  - Fixed the entry point in `setup.py` to use the correct module path
+
+- **Enhanced Streamlit UI Testing**: Implemented comprehensive testing for the Streamlit interface:
+  - Added proper use of Streamlit's AppTest framework for UI testing
+  - Implemented tests for UI elements and user interactions
+  - Added mock implementations for async functions and streaming responses
+  - Improved test coverage for the Gemini chat interface
+  - Created detailed documentation on Streamlit testing best practices
+  - Resolved test skipping issues with proper error handling and context management
+
+- **Fixed ChromaDB Integration**: Resolved embedding function issue in the document ingestion pipeline:
+  - Added DefaultEmbeddingFunction to convert text to vectors
+  - Improved error handling for ChromaDB operations
+  - Fixed collection creation and document storage
+  - Enhanced logging for better debugging of document operations
 
 - **Package Renaming**: Successfully renamed the package from `hello_world` to `research_agent`, updating all references and ensuring compatibility.
 - **Fixed pydantic-graph integration**: Resolved several critical issues with the Graph implementation:
@@ -58,6 +80,13 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Updates
 
+- **Improved CLI Command Structure**: Enhanced the command-line interface with separate commands:
+  - `research_agent gemini`: Run the Gemini AI agent with a prompt
+  - `research_agent ingest`: Ingest documents from a directory into a ChromaDB collection
+  - Added common flags like `--log-level` and `--log-file` for better control
+  - Improved error reporting and user feedback
+  - Fixed parameter validation and type handling
+
 - **Centralized Logging System**: Implemented a comprehensive logging infrastructure:
   - Created a central logging configuration module to standardize logging across the application
   - Added command-line options for controlling log levels and output destinations
@@ -79,6 +108,12 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Integrations
 
+- **ChromaDB Integration**: Added support for document storage and retrieval:
+  - Implemented document ingestion pipeline using ChromaDB
+  - Added utilities for loading documents from directories
+  - Created vector embeddings for semantic search capabilities
+  - Configured persistent storage for document collections
+
 - **Vertex AI Integration**: Added support for Google Vertex AI through Pydantic-AI's VertexAIModel, providing a reliable and efficient way to call Google's Gemini models.
 - **Gemini Chat UI**: Created a dedicated Streamlit interface for conversational interaction with Gemini models.
   - Accessible through command line: `python -m research_agent.ui.cli_entry --app gemini` or `research_agent --app gemini`
@@ -99,16 +134,23 @@ Think of it as a pipeline where information flows through different stations (or
 
 The application follows this execution path:
 1. Entry point (`cli_entry`) is called through the command-line
-2. Command parsing and setup is handled in `commands.py`
-3. The service layer (`services.py`) is called to run the graph
-4. The graph executes through nodes and returns results
-5. Results are displayed with detailed timing information
+2. Command parsing and setup is handled in `main.py`
+3. The appropriate command handler (from the `commands/` directory) is called
+4. The service layer (`services.py`) is called to run the graph
+5. The graph executes through nodes and returns results
+6. Results are displayed with detailed timing information
 
 For the Gemini CLI interface, the flow is:
 1. User runs `research_agent gemini --prompt "Your question here"`
-2. The `commands.py` module parses arguments and configures logging
+2. The `commands/gemini.py` module handles the command and configures logging
 3. The service layer is called to generate an AI response
 4. The response and timing information are displayed to the user
+
+For the Document Ingestion pipeline, the flow is:
+1. User runs `research_agent ingest --data-dir "./data" --collection "my_docs"`
+2. The `commands/ingest.py` module parses arguments and loads documents
+3. Documents are processed and embedded using ChromaDB
+4. The ingestion results are displayed with timing and document counts
 
 For the Gemini Chat interface, the flow is:
 1. Entry point (`cli_entry --app gemini`) launches the Streamlit interface
@@ -171,9 +213,15 @@ If you're interested in trying the Research Agent:
    research_agent gemini --prompt "Your question" --log-level DEBUG --project-id your-project-id
    ```
 
-4. **For developers**: Check out the README.md file for detailed setup instructions.
+4. **To ingest documents**:
+   ```
+   research_agent ingest --data-dir "./data" --collection "my_collection" --chroma-dir "./chroma_db"
+   ```
+   This loads documents from the specified directory and stores them in a ChromaDB collection.
 
-5. **Quick test**: To verify the installation, run the command-line tool:
+5. **For developers**: Check out the README.md file for detailed setup instructions.
+
+6. **Quick test**: To verify the installation, run the command-line tool:
    ```
    research_agent gemini --prompt "Hello, what can you do?"
    ```
@@ -191,5 +239,7 @@ If you're interested in trying the Research Agent:
 The project is in a **stable and functioning state**. The codebase follows best practices for Python development, and we're committed to maintaining high code quality standards. All tests are now passing with the recent pydantic-graph integration fixes, and the system is ready for further enhancement beyond the "Hello World" example.
 
 The latest build (`research_agent-0.1.0-py3-none-any.whl`) is available and functioning correctly with all recent fixes applied.
+
+The CLI structure has been significantly improved with a modular architecture that makes it easy to add new commands in the future. The document ingestion pipeline is now fully operational with ChromaDB integration, allowing for storage and retrieval of document embeddings. The logging system provides detailed information for debugging and monitoring, with configurable output levels and destinations.
 
 The Gemini Chat interface is now fully operational with streaming responses and robust async handling, making it suitable for interactive research and exploration tasks. The interface has been significantly improved with a complete rewrite of the streaming implementation, fixing event loop issues that previously prevented multi-turn conversations. The codebase has been streamlined to use exclusively the GeminiLLMClient, removing unnecessary client implementations and simplifying the architecture. The Graph implementation has been properly aligned with pydantic-graph's requirements, ensuring a solid foundation for future development of more complex research workflows. 

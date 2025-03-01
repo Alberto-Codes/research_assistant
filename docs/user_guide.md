@@ -24,7 +24,7 @@ This guide helps you get started with the Research Agent tool. It covers install
 
 3. **Verify installation**:
    ```bash
-   pipenv run research_agent --help
+   research_agent --help
    ```
    
    You should see a help message listing available commands.
@@ -49,7 +49,7 @@ The web interface provides a visual way to interact with the Research Agent:
    ```
    or
    ```bash
-   pipenv run research_agent ui
+   research_agent --app streamlit
    ```
 
 2. **Access the interface**: 
@@ -73,7 +73,7 @@ The Gemini Chat UI provides an interactive chat experience with Google's Gemini 
    ```
    or
    ```bash
-   pipenv run research_agent --app gemini
+   research_agent --app gemini
    ```
    or
    ```bash
@@ -95,19 +95,19 @@ The Gemini Chat UI provides an interactive chat experience with Google's Gemini 
 
 For more advanced users or for automation:
 
-1. **Basic usage**:
+1. **Using Gemini from the command line**:
    ```bash
-   pipenv run research_agent cli
+   research_agent gemini --prompt "What are the three laws of robotics?"
    ```
 
-2. **With custom options**:
+2. **With logging options**:
    ```bash
-   pipenv run research_agent cli --prefix "AI"
+   research_agent gemini --prompt "Explain neural networks" --log-level DEBUG --log-file ./logs/gemini.log
    ```
 
-3. **Using Gemini from the command line**:
+3. **Ingesting documents**:
    ```bash
-   pipenv run research_agent gemini --prompt "What are the three laws of robotics?"
+   research_agent ingest --data-dir "./documents" --collection "my_research" --chroma-dir "./chroma_db"
    ```
 
 ### Configuration Options
@@ -127,13 +127,24 @@ You can customize how the Research Agent works:
 
 #### In the Command-line
 
-- `--prefix TEXT`: Add a prefix to generated text
+- Common options available for all commands:
+  - `--log-level`: Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  - `--log-file`: Specify a file to save logs
+
+- Gemini command options:
+  - `--prompt`: The prompt to send to the Gemini model (required)
+  - `--project-id`: Google Cloud project ID (optional)
+
+- Ingest command options:
+  - `--data-dir`: Directory containing documents to ingest
+  - `--collection`: Name of the ChromaDB collection
+  - `--chroma-dir`: Directory for ChromaDB persistence
 
 ## Example Workflows
 
 ### Basic Research Example
 
-1. Start the web interface with `make run-ui`
+1. Start the web interface with `research_agent --app streamlit`
 2. Keep the default settings in the sidebar
 3. Click the "Generate" button
 4. Observe the result: "Hello World!"
@@ -148,12 +159,25 @@ You can customize how the Research Agent works:
 5. Continue the conversation with follow-up questions
 6. Save your conversation using the "Save Chat" button
 
-### Custom Research Example
+### Document Ingestion Example
 
-1. Start the web interface with `make run-ui`
-2. Enter "AI" in the Text Prefix field
-3. Click the "Generate" button
-4. Observe the result: "AI Hello AI World!"
+1. Prepare a directory with text documents:
+   ```
+   documents/
+     ├── research1.txt
+     ├── research2.txt
+     └── article.txt
+   ```
+
+2. Ingest the documents:
+   ```bash
+   research_agent ingest --data-dir "./documents" --collection "quantum_research"
+   ```
+
+3. Verify ingestion with detailed logging:
+   ```bash
+   research_agent ingest --data-dir "./documents" --collection "quantum_research" --log-level DEBUG
+   ```
 
 ## Understanding the Results
 
@@ -196,6 +220,12 @@ In the Gemini Chat UI, you'll also see:
 - Authentication errors may indicate issues with Google Cloud credentials
 - See the [Gemini Integration Guide](gemini_integration.md) for more troubleshooting tips
 
+#### ChromaDB Issues
+
+- If document ingestion fails, check that your data directory exists and contains text files
+- For embedding errors, verify ChromaDB is installed correctly
+- Use `--log-level DEBUG` to get detailed information about any errors
+
 ## Next Steps
 
 After getting familiar with the basic functionality, you can:
@@ -204,6 +234,62 @@ After getting familiar with the basic functionality, you can:
 2. Create custom nodes for specific research tasks
 3. Integrate with real language model providers
 4. Build more complex research workflows
+
+## Testing and Contributing
+
+### Running Tests
+
+The Research Agent has a comprehensive test suite:
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific tests
+pytest tests/research_agent/test_cli.py
+
+# Run Streamlit UI tests
+pytest tests/research_agent/test_streamlit.py
+```
+
+### Writing Tests
+
+If you want to contribute to the project:
+
+1. Add tests for any new functionality
+2. Ensure all tests pass before submitting changes
+3. Follow the patterns in the existing test files
+4. For UI tests, use the Streamlit testing framework with `AppTest`
+
+The project now features enhanced Streamlit UI testing using the `AppTest` framework, which allows for testing UI components without running a full browser:
+
+- Tests verify UI elements, interactions, and streaming responses
+- Uses proper mocking techniques for async functions
+- Includes error handling for Streamlit context errors
+- Provides a robust approach for testing the Gemini chat interface
+
+For example, to test a UI interaction:
+
+```python
+from streamlit.testing.v1 import AppTest
+
+def test_ui_interaction():
+    # Create and run the test app
+    at = AppTest.from_file("path/to/app.py")
+    at.run()
+    
+    # Test a user interaction
+    at.chat_input[0].set_value("Test question")
+    at.run()
+    
+    # Verify the response appeared
+    assert "response" in at.markdown[0].value.lower()
+```
+
+See the [Testing Guide](../TESTING.md) for detailed information about the testing approach.
 
 ## Getting Help
 

@@ -6,6 +6,7 @@ This document explains how to use the ChromaDB document ingestion feature in the
 
 The ChromaDB document ingestion feature allows you to:
 - Load documents from files in a directory
+- Process and embed documents using the DefaultEmbeddingFunction
 - Ingest documents into a persistent ChromaDB collection
 - Use these documents later for vector search and retrieval
 
@@ -25,16 +26,19 @@ The feature requires `chromadb` package, which should be installed automatically
 
 ### Command Line Interface
 
-You can use the CLI script to ingest documents from a directory:
+You can use the CLI to ingest documents from a directory:
 
 ```bash
-python -m research_agent.cli.ingest_documents --data-dir ./data --collection my_collection --chroma-dir ./chroma_db
+# Using the modular CLI command
+research_agent ingest --data-dir ./data --collection my_collection --chroma-dir ./chroma_db
 ```
 
 Options:
 - `--data-dir`: Directory containing documents to ingest (default: `./data`)
 - `--collection`: Name of the ChromaDB collection to use (default: `default_collection`)
 - `--chroma-dir`: Directory where ChromaDB data should be persisted (default: `./chroma_db`)
+- `--log-level`: Control logging verbosity (e.g., DEBUG, INFO) (default: INFO)
+- `--log-file`: Path to save log output (optional)
 
 ### Programmatic Usage
 
@@ -94,6 +98,17 @@ This allows you to:
 - Persist your document embeddings between runs
 - Use the same collection across different sessions
 - Scale to large document collections efficiently
+
+## Recent Improvements
+
+The ChromaDB integration has been recently improved with:
+
+1. **Fixed Embedding Function**: Added DefaultEmbeddingFunction to properly convert text to vectors
+2. **Improved Error Handling**: Better error detection and reporting for ChromaDB operations
+3. **Reliable Collection Creation**: Fixed issues with collection creation and document storage
+4. **Enhanced Logging**: Detailed logging for troubleshooting document ingestion
+5. **CLI Integration**: Full integration with the new modular CLI architecture
+6. **Consistent Persistence**: More reliable directory creation and database persistence
 
 ## Next Steps
 

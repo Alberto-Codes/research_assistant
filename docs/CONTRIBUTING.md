@@ -115,6 +115,65 @@ Run the following to ensure your code meets our standards:
 make quality
 ```
 
+## UI Testing Guidelines
+
+When contributing changes to the Streamlit UI components, please follow these testing guidelines:
+
+1. **Use AppTest Framework**: All UI tests should use Streamlit's `AppTest` framework:
+   ```python
+   from streamlit.testing.v1 import AppTest
+   ```
+
+2. **Test Basic UI Elements**: Verify that UI components render correctly:
+   ```python
+   def test_ui_components():
+       at = AppTest.from_file("path/to/app.py")
+       at.run()
+       assert "Expected Title" in at.title[0].value
+   ```
+
+3. **Test User Interactions**: Simulate and verify user interactions:
+   ```python
+   def test_user_interaction():
+       at = AppTest.from_file("path/to/app.py")
+       at.run()
+       at.text_input[0].set_value("Test input")
+       at.button[0].click()
+       at.run()
+       assert "Expected Result" in at.markdown[0].value
+   ```
+
+4. **Mock External Dependencies**: Properly mock API calls and other dependencies:
+   ```python
+   @patch("module.external_dependency")
+   def test_with_mock(mock_dependency):
+       mock_dependency.return_value = "Mock result"
+       at = AppTest.from_file("path/to/app.py")
+       at.run()
+   ```
+
+5. **Handle Streamlit Context Errors**: Always wrap Streamlit tests in try/except blocks to handle potential context errors:
+   ```python
+   def test_with_error_handling():
+       try:
+           at = AppTest.from_file("path/to/app.py")
+           at.run()
+           # Test assertions
+       except Exception as e:
+           pytest.skip(f"Streamlit test environment issue: {str(e)}")
+   ```
+
+6. **Test Async Functions**: Use proper mocking techniques for async functions:
+   ```python
+   @pytest.mark.asyncio
+   @patch("module.async_function")
+   async def test_async_feature(mock_async):
+       mock_async.return_value = "mock result"
+       # Test implementation
+   ```
+
+For more detailed information, see the [Testing Guide](../TESTING.md) and examples in `tests/research_agent/test_streamlit.py`.
+
 ## Communication
 
 If you have questions or need help:

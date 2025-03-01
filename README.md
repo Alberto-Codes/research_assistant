@@ -127,12 +127,20 @@ This project follows best practices for testing, with a focus on keeping product
 - Unit tests for all components
 - Integration tests for workflows
 - Mock clients for external services (Vertex AI)
+- Streamlit UI tests using `streamlit.testing.v1.AppTest`
 
 ### Mock Clients
 We've deprecated the practice of including mock implementations in production code. Instead:
 - All mock implementations are kept in test files
 - We use pytest fixtures for providing test doubles
 - Test against protocols rather than concrete implementations
+
+### UI Testing
+For Streamlit UI testing, we use Streamlit's AppTest framework to test UI components without running a full browser:
+- Test the presence and configuration of UI elements
+- Simulate user interactions
+- Mock async streaming responses
+- Test UI state changes
 
 For more details, see the [Testing Guide](TESTING.md).
 

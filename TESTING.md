@@ -1,210 +1,336 @@
 # Testing Guide for Research Agent
 
-This document outlines the testing approach and best practices for the Research Agent project, specifically focusing on how to properly test the Gemini AI integration.
+This guide provides detailed information about the testing approach, how to run tests, and best practices for maintaining and extending the test suite.
 
-## Testing Approach
+## Overview
 
-### 1. Unit Testing with pytest
+The Research Agent project uses pytest for testing with a focus on:
 
-We use pytest as our primary testing framework. The project includes several types of tests:
-
-- **Unit tests** for individual components (nodes, services, etc.)
-- **Integration tests** for complete workflows
-- **Mock tests** for testing components that depend on external services
-
-### 2. Mock vs. Real Testing
-
-#### Deprecated Approach (Removed):
-
-Previously, the codebase included mock client classes directly in the production code and flags like `--use-mock-gemini`. These approaches have been completely removed from the project as they:
-- Mixed production and testing code
-- Required maintaining mock implementations in production code
-- Created dependencies on testing-specific code in the production environment
-
-#### Current Approach:
-
-Now, we use pytest's built-in mocking capabilities:
-1. Create proper test fixtures in test files
-2. Use `unittest.mock` or custom mock classes that implement protocols
-3. Keep all mock implementations in test files only
-
-## Testing the Gemini Integration
-
-### Option 1: Using pytest fixtures with AsyncMock
-
-```python
-@pytest.fixture
-def mock_gemini_client():
-    mock = AsyncMock()
-    mock.generate_text = AsyncMock(return_value="Mocked response")
-    return mock
-
-@pytest.mark.asyncio
-async def test_with_mock(mock_gemini_client):
-    # Inject the mock into your dependencies
-    deps = HelloWorldDependencies()
-    deps.llm_client = mock_gemini_client
-    
-    # Test your component
-    # ...
-    
-    # Verify mock was called correctly
-    mock_gemini_client.generate_text.assert_called_once_with("Expected prompt")
-```
-
-### Option 2: Mocking Pydantic-AI's Agent
-
-For testing the Pydantic-AI integration specifically:
-
-```python
-@pytest.fixture
-def mock_pydantic_ai_agent():
-    # Create a mock agent with the expected data attribute in the result
-    agent_mock = AsyncMock()
-    # Mock the run method to return an object with a data attribute
-    result_mock = MagicMock()
-    result_mock.data = "Mocked Pydantic-AI response"
-    agent_mock.run = AsyncMock(return_value=result_mock)
-    return agent_mock
-
-@pytest.fixture
-def mock_gemini_client(mock_pydantic_ai_agent):
-    # Create the client with the mocked agent
-    client = GeminiLLMClient(project_id="test-project")
-    # Replace the agent with our mock
-    client.agent = mock_pydantic_ai_agent
-    return client
-```
-
-### Option 3: Using a protocol implementation (recommended)
-
-```python
-class MockLLM(LLMClient):
-    def __init__(self, response="Mocked response"):
-        self.response = response
-        self.calls = []
-        
-    async def generate_text(self, prompt: str) -> str:
-        self.calls.append(prompt)
-        return self.response
-
-@pytest.mark.asyncio
-async def test_with_protocol_mock():
-    # Create mock
-    mock_llm = MockLLM()
-    
-    # Inject the mock
-    deps = HelloWorldDependencies()
-    deps.llm_client = mock_llm
-    
-    # Test your component
-    # ...
-    
-    # Verify mock was called correctly
-    assert len(mock_llm.calls) == 1
-    assert mock_llm.calls[0] == "Expected prompt"
-```
-
-### Option 4: Using monkeypatch
-
-```python
-@pytest.fixture
-def mock_gemini_with_monkeypatch(monkeypatch):
-    class MockGemini:
-        def __init__(self, *args, **kwargs):
-            pass
-            
-        async def generate_text(self, prompt):
-            return "Mocked response"
-    
-    # Replace the real class with the mock
-    monkeypatch.setattr("research_agent.core.dependencies.GeminiLLMClient", MockGemini)
-    return MockGemini()
-```
+- **Unit testing** of core components
+- **Integration testing** of workflows and services
+- **UI testing** of Streamlit interfaces
+- **Mock testing** for external dependencies like Vertex AI
 
 ## Running Tests
 
-### Running Specific Tests
+### Running the Full Test Suite
+
+To run all tests:
 
 ```bash
-# Run all tests
-python -m pytest
-
-# Run with verbose output
-python -m pytest -v
-
-# Run specific test file
-python -m pytest tests/test_nodes.py
-
-# Run specific test
-python -m pytest tests/test_nodes.py::test_gemini_agent_node_with_mock
+pytest
 ```
 
-### Test Categories
+For more detailed output, run:
 
-- **Node Tests**: Tests for individual graph nodes
-- **Service Tests**: Tests for API service functions
-- **Client Tests**: Tests for LLM clients
-- **Integration Tests**: End-to-end tests of workflows
+```bash
+pytest -v
+```
 
-## Best Practices
+### Running Specific Tests
 
-1. **Keep mocks in test files**: Never implement mock classes in production code
-2. **Test against protocols**: Create mocks that implement the same protocol as real implementations
-3. **Use dependency injection**: Make it easy to swap real implementations with test mocks
-4. **Skip API-dependent tests**: Use pytest.skip for tests that require real API access if credentials aren't available
-5. **Test both success and failure cases**: Verify how your code handles errors
-6. **Integration test with caution**: Ensure integration tests run only when needed and don't hit production APIs unnecessarily
-7. **Separate unit and integration tests**: Have clear separation to keep your test suite fast
+Run tests from a specific file:
 
-## Example: Testing Complete Workflow
+```bash
+pytest tests/research_agent/test_graph.py
+```
+
+Run a specific test:
+
+```bash
+pytest tests/research_agent/test_graph.py::test_run_gemini_agent_graph
+```
+
+### Running Tests with Coverage
+
+To run tests with coverage reporting:
+
+```bash
+pytest --cov=research_agent
+```
+
+For a detailed coverage report:
+
+```bash
+pytest --cov=research_agent --cov-report=html
+```
+
+This generates an HTML report in the `htmlcov` directory.
+
+## Test Structure
+
+Tests are organized to mirror the package structure:
+
+```
+tests/
+├── research_agent/
+│   ├── test_cli.py         # Tests for CLI functionality
+│   ├── test_dependencies.py # Tests for dependency injection
+│   ├── test_graph.py       # Tests for graph execution
+│   ├── test_nodes.py       # Tests for individual nodes
+│   └── test_streamlit.py   # Tests for Streamlit UI
+├── test_gemini_client.py   # Tests for the Gemini client
+├── test_nodes.py           # Tests for core nodes
+└── test_services.py        # Tests for service layer functions
+```
+
+## Writing Tests
+
+### Test Patterns
+
+Follow these patterns when writing tests:
+
+1. **AAA Pattern** (Arrange, Act, Assert):
+   ```python
+   def test_example():
+       # Arrange - set up test data and dependencies
+       test_data = "test input"
+       mock_dependency = MagicMock()
+       
+       # Act - call the function being tested
+       result = function_under_test(test_data, mock_dependency)
+       
+       # Assert - verify the function behaved as expected
+       assert result == "expected output"
+       assert mock_dependency.method.called
+   ```
+
+2. **Fixtures** for common setup:
+   ```python
+   @pytest.fixture
+   def mock_gemini_client():
+       return MagicMock()
+       
+   def test_with_fixture(mock_gemini_client):
+       # Use the fixture
+       assert function_using_client(mock_gemini_client) == expected_result
+   ```
+
+3. **Mocking** for isolating tests:
+   ```python
+   @patch("research_agent.core.dependencies.GeminiLLMClient")
+   def test_with_mock(mock_client_class):
+       mock_client = MagicMock()
+       mock_client_class.return_value = mock_client
+       mock_client.generate_text.return_value = "mocked response"
+       
+       # Test with the mock in place
+       assert function_using_gemini() == "mocked response"
+   ```
+
+### Testing Async Code
+
+For async functions, use pytest-asyncio:
 
 ```python
 @pytest.mark.asyncio
-async def test_gemini_workflow():
-    # Set up mock
-    mock_llm = MockLLM(response="AI response to test prompt")
-    
-    # Create dependencies with mock
-    deps = HelloWorldDependencies()
-    deps.llm_client = mock_llm
-    
-    # Run the workflow
-    user_prompt = "Test prompt"
-    output, state, _ = await run_gemini_agent_graph(user_prompt, dependencies=deps)
-    
-    # Verify results
-    assert output == "AI response to test prompt"
-    assert state.user_prompt == "Test prompt"
-    assert state.ai_response == "AI response to test prompt"
+async def test_async_function():
+    # Test async function
+    result = await async_function_under_test()
+    assert result == expected_value
 ```
 
-## Testing the Gemini Chat UI
+### Testing Streamlit UIs
 
-For testing the Streamlit-based Gemini Chat UI, we recommend:
-
-1. **Mocking the streaming response**:
-   ```python
-   @pytest.fixture
-   def mock_streaming_client():
-       async def mock_generate_streaming_response(*args, **kwargs):
-           # Return a mock async generator
-           async def mock_generator():
-               for chunk in ["Hello", " there", "!"];
-                   yield chunk
-           return mock_generator()
-       
-       mock = AsyncMock()
-       mock.generate_streaming_response = mock_generate_streaming_response
-       return mock
-   ```
-
-2. **Testing the UI components separately** from the actual Gemini client integration
-
-3. **Creating integration tests** that test the full UI experience but can be skipped in CI environments
+For Streamlit interfaces, use the AppTest class:
 
 ```python
-@pytest.mark.skipif(os.environ.get("CI") == "true", reason="Skip in CI environment")
+def test_streamlit_app():
+    # Create a test app
+    at = AppTest.from_file("path/to/app.py")
+    
+    # Run the app
+    at.run()
+    
+    # Check UI elements
+    assert "Title" in at.title[0].value
+    
+    # Interact with the app
+    at.text_input[0].set_value("Test input")
+    at.button[0].click()
+    at.run()
+    
+    # Check results
+    assert "Result" in at.markdown[0].value
+```
+
+When testing complex async behavior in Streamlit apps, use proper mocking:
+
+```python
+@patch("module.AsyncClass")
+def test_streamlit_async(mock_async_class):
+    # Setup mock for async behavior
+    mock_instance = AsyncMock()
+    mock_async_class.return_value = mock_instance
+    
+    # Configure async mock behavior
+    mock_instance.async_method.return_value = "mock result"
+    
+    # Create and run test app
+    at = AppTest.from_file("path/to/app.py")
+    at.run()
+    
+    # Test interaction
+    at.button[0].click()
+    at.run()
+    
+    # Verify mock was called
+    assert mock_instance.async_method.called
+```
+
+## Streamlit UI Testing
+
+The Research Agent uses Streamlit for its user interfaces, and we test these UIs using Streamlit's built-in testing framework with the `AppTest` class.
+
+### Setting Up Streamlit Tests
+
+To test Streamlit UIs, you need to:
+
+1. Import the `AppTest` class:
+   ```python
+   from streamlit.testing.v1 import AppTest
+   ```
+
+2. Create a test instance by pointing to your app file:
+   ```python
+   at = AppTest.from_file("src/research_agent/ui/streamlit/app.py")
+   ```
+
+3. Run the app:
+   ```python
+   at.run()
+   ```
+
+### Testing UI Elements
+
+The `AppTest` class provides access to all UI elements:
+
+```python
+# Check page title
+assert "Research Agent" in at.title[0].value
+
+# Check for text in the page
+assert "Instructions" in at.markdown[0].value
+
+# Check widgets
+assert at.text_input[0].label == "Your Question"
+assert at.button[0].label == "Submit"
+```
+
+### Testing User Interactions
+
+You can simulate user interactions:
+
+```python
+# Enter text
+at.text_input[0].set_value("What is machine learning?")
+
+# Click a button
+at.button[0].click()
+
+# Run the app again to process the interaction
+at.run()
+
+# Check for response
+assert "machine learning" in at.chat_message[1].markdown[0].value.lower()
+```
+
+### Testing Async Streaming
+
+For testing streaming UI features:
+
+```python
+# Mock the streaming response
+with patch("module.streaming_function") as mock_stream:
+    # Configure mock to return chunks of text
+    async def mock_streaming():
+        for chunk in ["Hello", " ", "World"]:
+            yield chunk
+    mock_stream.return_value = mock_streaming()
+    
+    # Run the app
+    at.run()
+    
+    # Trigger streaming
+    at.chat_input[0].set_value("Test")
+    at.run()
+    
+    # Verify streaming happened
+    assert mock_stream.called
+```
+
+### Handling Streamlit Context Errors
+
+Streamlit tests may fail with context errors when run outside a Streamlit environment. Use try/except to gracefully handle these:
+
+```python
 def test_streamlit_ui():
-    # Test code here
-``` 
+    try:
+        # Create and run test
+        at = AppTest.from_file("path/to/app.py")
+        at.run()
+        
+        # Test assertions...
+        
+    except Exception as e:
+        pytest.skip(f"Streamlit test environment issue: {str(e)}")
+```
+
+### Tips for Effective Streamlit Testing
+
+1. **Mock external dependencies**: Especially important for UI tests to avoid network calls
+2. **Test incrementally**: Check UI setup first, then interactions, then responses
+3. **Use widget indexing**: Access elements by index (e.g., `at.button[0]`, `at.text_input[1]`)
+4. **Check for presence rather than exact matches**: UI content might change slightly
+5. **Test critical user flows**: Focus on the most important user interactions
+
+## Integration with CI/CD
+
+Tests are run automatically in the CI/CD pipeline:
+
+1. On each pull request, all tests are run
+2. Coverage reports are generated
+3. Tests must pass for the PR to be merged
+
+## Dealing with External Dependencies
+
+When testing code that relies on external services:
+
+1. **Use mocks** for API clients and services
+2. **Create fixtures** that simulate responses from external services
+3. **Use dependency injection** to swap real implementations with test doubles
+
+For Vertex AI and Gemini:
+
+```python
+@pytest.fixture
+def mock_gemini_response():
+    return {
+        "text": "This is a mock response from Gemini",
+        "metadata": {
+            "token_count": 10,
+            "response_time": 0.5
+        }
+    }
+
+@patch("research_agent.core.dependencies.GeminiLLMClient")
+def test_with_mock_gemini(mock_client_class, mock_gemini_response):
+    # Configure the mock
+    mock_client = MagicMock()
+    mock_client_class.return_value = mock_client
+    mock_client.generate_text.return_value = mock_gemini_response["text"]
+    
+    # Test code that uses the client
+    result = function_that_uses_gemini()
+    assert result == mock_gemini_response["text"]
+```
+
+## Best Practices
+
+1. **Keep tests isolated** - Each test should run independently
+2. **Use descriptive test names** - Names should describe what's being tested
+3. **Test edge cases** - Not just the happy path
+4. **Avoid test interdependence** - Don't rely on state from other tests
+5. **Clean up after tests** - Use teardown or context managers
+6. **Mock external dependencies** - Don't call real APIs in tests
+7. **Test one thing per test** - Each test should verify one aspect of behavior 

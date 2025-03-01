@@ -117,6 +117,35 @@ This will run all formatters, linters, security checks, tests, and documentation
    - Tests should be in the appropriate file in the `tests/` directory
    - Use pytest fixtures for common setup
 
+4. **Streamlit UI Testing**:
+   - Streamlit UI tests use the `AppTest` class from `streamlit.testing.v1`
+   - Tests should verify UI elements, user interactions, and response handling
+   - Example:
+     ```python
+     from streamlit.testing.v1 import AppTest
+     
+     def test_streamlit_app():
+         # Create a test app instance
+         at = AppTest.from_file("src/research_agent/ui/streamlit/app.py")
+         
+         # Run the app
+         at.run()
+         
+         # Check UI elements
+         assert "Title" in at.title[0].value
+         
+         # Test interactions
+         at.text_input[0].set_value("Test input")
+         at.button[0].click()
+         at.run()
+         
+         # Verify results
+         assert "Result" in at.markdown[0].value
+     ```
+   - For async streaming tests, use proper mocking techniques
+   - See `tests/research_agent/test_streamlit.py` for examples
+   - Refer to the [Testing Guide](../TESTING.md) for detailed instructions
+
 ### Code Quality Standards
 
 All code must meet the following standards:
@@ -406,6 +435,39 @@ When working on the Gemini Chat UI:
 2. **Use proper error handling**: Catch and display errors appropriately
 3. **Test streaming functionality**: Ensure responses stream properly without errors
 4. **Maintain responsive UI**: Keep the interface responsive during model calls
+
+### Testing the Gemini Chat UI
+
+The Gemini Chat UI has comprehensive tests in `tests/research_agent/test_streamlit.py` using Streamlit's `AppTest` framework:
+
+1. **Test Setup**:
+   ```python
+   @patch("research_agent.ui.streamlit.gemini_chat.asyncio.run")
+   @patch("research_agent.ui.streamlit.gemini_chat.GeminiLLMClient")
+   def test_gemini_chat_ui(mock_gemini_client, mock_asyncio_run):
+       # Create a test app
+       at = AppTest.from_file("src/research_agent/ui/streamlit/gemini_chat.py")
+       at.run()
+       
+       # Test UI elements and interactions
+       # ...
+   ```
+
+2. **Testing Async Features**:
+   - Use `@pytest.mark.asyncio` decorator for async tests
+   - Mock streaming response functions
+   - Test both success and error paths
+   
+3. **Testing Response Generation**:
+   - Test both regular and streaming response generation
+   - Mock the agent and client dependencies
+   - Verify proper state updates
+
+4. **Error Handling**:
+   - Wrap Streamlit tests in try/except blocks to handle context errors
+   - Use `pytest.skip()` with informative messages for environment issues
+
+For detailed examples, see `tests/research_agent/test_streamlit.py` and the [Testing Guide](../TESTING.md).
 
 ## Documentation
 
