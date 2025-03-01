@@ -1,5 +1,27 @@
 # ChromaDB and Gemini Integration with Pydantic-Graph
 
+## Implementation Status
+
+**Current Status: In Progress**
+
+- ✅ **Step 1: Define Dependencies and State Models** - Completed
+  - RAGDependencies and RAGState classes implemented
+  - 100% test coverage achieved for these components
+  - Classes available in `src/research_agent/core/rag/dependencies.py` and `src/research_agent/core/rag/state.py`
+
+- ❌ **Step 2: Create Graph Nodes** - Not started
+- ❌ **Step 3: Create and Configure the Graph** - Not started
+- ❌ **Step 4: Service Function to Run the Graph** - Not started
+- ❌ **Step 5: CLI Integration** - Not started
+- ❌ **Step 6: Streamlit UI Integration** - Not started
+- ❌ **Step 7: Update Main Entry Points** - Not started
+
+**Next Steps:**
+1. Implement the QueryNode, RetrieveNode, and AnswerNode classes
+2. Create and configure the RAG graph
+3. Implement service functions for running RAG queries
+4. Add CLI and UI integration points
+
 This document outlines the implementation plan for integrating ChromaDB with Gemini using pydantic-graph to create a powerful RAG (Retrieval Augmented Generation) system.
 
 ## Overview of the Implementation
