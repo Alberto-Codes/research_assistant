@@ -13,6 +13,8 @@ This project implements an AI agent using Pydantic Graph and integrates with Goo
 - Graph-based workflow for AI agent implementation
 - Command-line interface for prompt-based interactions
 - Streamlit UI for interactive chat experiences
+- Document ingestion capabilities for knowledge retrieval
+- Multi-page UI with both chat and document management
 - Unified entry point for both CLI and UI interfaces
 
 ## Installation
@@ -75,7 +77,7 @@ Options:
 
 ### Streamlit UI Interface
 
-For an interactive chat experience with Gemini models, use the Streamlit-based interface:
+For an interactive experience with both chat and document management capabilities, use the Streamlit-based interface:
 
 ```
 python -m src.main ui
@@ -88,6 +90,21 @@ python -m src.main ui --port 8888
 ```
 
 The Streamlit interface will automatically open in your browser, or you can visit `http://localhost:8501` (or your specified port).
+
+#### Streamlit Features
+
+The Streamlit UI includes multiple pages:
+
+1. **Chat with Gemini**: Interact with the Gemini model in a chat interface
+   - Configure system prompts to customize the assistant behavior
+   - Enable/disable chat history for contextual conversations
+   - View response metrics and debugging information
+
+2. **Document Ingestion**: Upload and manage documents
+   - Upload multiple documents at once
+   - Organize documents into collections
+   - View detailed ingestion results
+   - Configure ChromaDB storage location
 
 ### Alternative Interface
 
@@ -121,6 +138,10 @@ To use the actual Vertex AI service:
   - `cli/`: Command-line interface and commands
   - `core/`: Core implementation including nodes, graph, and dependencies
   - `ui/`: UI components (Streamlit)
+    - `streamlit/`: Streamlit web UI
+      - `app.py`: Multi-page Streamlit application
+      - `gemini_chat.py`: Chat interface for Gemini
+      - `document_ingestion.py`: Document ingestion interface
 - `examples/`: Example scripts for testing and demonstration
 - `tests/`: Unit tests
 
@@ -130,6 +151,7 @@ To use the actual Vertex AI service:
 - `pydantic-graph`: For graph-based workflow
 - `streamlit`: For the web-based UI
 - `google-cloud-aiplatform`: For Vertex AI integration
+- `chromadb`: For document storage and vector database capabilities
 
 ## Testing Approach
 
@@ -181,7 +203,9 @@ src/
 │   │   └── main.py          # CLI entry point
 │   └── ui/                  # User interface layer
 │       ├── streamlit/       # Streamlit web UI
-│       │   └── gemini_chat.py # Gemini chat interface
+│       │   ├── app.py       # Multi-page Streamlit application
+│       │   ├── gemini_chat.py # Gemini chat interface
+│       │   └── document_ingestion.py # Document ingestion interface
 │       └── web/             # (Future) FastAPI web API
 ```
 
@@ -253,6 +277,16 @@ The project uses `pydantic-graph` to create a workflow with connected nodes:
 
 Each node runs in sequence, passing its state to the next node in the graph.
 
+## Document Management
+
+The project includes a complete document management system using ChromaDB for vector storage:
+
+1. Document ingestion through both CLI and UI interfaces
+2. Support for various document formats
+3. Collection-based organization
+4. Persistent storage of document embeddings
+5. Built using a modular graph-based workflow
+
 ## Dependency Management
 
 This project uses `pipenv` for dependency management. The main dependencies are:
@@ -260,14 +294,15 @@ This project uses `pipenv` for dependency management. The main dependencies are:
 - `pydantic-graph` - For defining the graph workflow
 - `pydantic-ai` - For LLM integration
 - `streamlit` - For the web-based UI
+- `chromadb` - For document storage and retrieval
 
 ## Recent Updates
 
-The most significant recent update is the consolidation of entry points into a single source of truth in `src/main.py`. This provides:
+The most significant recent updates include:
 
-- A unified interface for launching both CLI commands and the Streamlit UI
-- Better error handling and path resolution for the Streamlit app
-- A cleaner, more maintainable codebase with reduced duplication
-- Fixed circular import issues for better reliability
+1. **Consolidated entry points** into a single source of truth in `src/main.py`
+2. **Document ingestion UI** added to the Streamlit interface
+3. **Multi-page Streamlit application** with navigation between features
+4. **Enhanced service layer** for document management
 
 For more details on the project status and recent changes, see the [Project Status](docs/PROJECT_STATUS.md) document.

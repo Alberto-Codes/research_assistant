@@ -26,6 +26,14 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Integrated Document Ingestion UI**: Added document ingestion capabilities to the Streamlit interface:
+  - Created a multi-page Streamlit application with navigation
+  - Added a dedicated document ingestion page with file upload capabilities
+  - Implemented service functions for document management
+  - Seamlessly integrated ChromaDB for document storage
+  - Provided detailed ingestion results and statistics
+  - Supported multiple file formats with proper error handling
+  
 - **Consolidated Entry Points**: Unified the main entry points into a single source of truth in `src/main.py`:
   - Simplified the CLI and UI interfaces to use a common entry point
   - Added direct command support for the CLI (gemini, ingest)
@@ -189,19 +197,15 @@ For the Gemini Chat interface, the flow is:
 
 If you're interested in trying the Research Agent:
 
-1. **For the Hello World Streamlit interface**:
+1. **For the multi-page Streamlit interface**:
    ```
    python -m src.main ui
    ```
-   This opens a web page where you can interact with the system visually.
+   This opens a web application with multiple features:
+   - **Chat with Gemini**: Have conversations with the Gemini model
+   - **Document Ingestion**: Upload and manage documents in ChromaDB
 
-2. **To use the Gemini Chat interface**:
-   ```
-   python -m src.main ui
-   ```
-   This opens a chat interface where you can have conversations with the Gemini model.
-
-3. **To use the Gemini CLI command**:
+2. **To use the Gemini CLI command**:
    ```
    research_agent gemini --prompt "Your question here"
    ```
@@ -212,21 +216,21 @@ If you're interested in trying the Research Agent:
    research_agent gemini --prompt "Your question" --log-level DEBUG --project-id your-project-id
    ```
 
-4. **To ingest documents**:
+3. **To ingest documents from the command line**:
    ```
    research_agent ingest --data-dir "./data" --collection "my_collection" --chroma-dir "./chroma_db"
    ```
    This loads documents from the specified directory and stores them in a ChromaDB collection.
 
-5. **For the streamlit UI with a specific port**:
+4. **For the streamlit UI with a specific port**:
    ```
    python -m src.main ui --port 8888
    ```
    This launches the Streamlit interface on port 8888 instead of the default 8501.
 
-6. **For developers**: Check out the README.md file for detailed setup instructions.
+5. **For developers**: Check out the README.md file for detailed setup instructions.
 
-7. **Quick test**: To verify the installation, run the command-line tool:
+6. **Quick test**: To verify the installation, run the command-line tool:
    ```
    research_agent gemini --prompt "Hello, what can you do?"
    ```

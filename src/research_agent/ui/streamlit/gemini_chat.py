@@ -46,13 +46,15 @@ except ImportError:
         "Warning: pydantic_ai.messages modules not available. Streaming may not work as expected."
     )
 
-# Set up the Streamlit page configuration
-st.set_page_config(
-    page_title="Research Agent - Gemini Chat",
-    page_icon="🧠",
-    layout="centered",
-    initial_sidebar_state="expanded",
-)
+# Only set page config when running this file directly, not when imported
+if __name__ == "__main__":
+    # Set up the Streamlit page configuration
+    st.set_page_config(
+        page_title="Research Agent - Gemini Chat",
+        page_icon="🧠",
+        layout="centered",
+        initial_sidebar_state="expanded",
+    )
 
 # Default system prompt
 DEFAULT_SYSTEM_PROMPT = """You are a helpful research assistant powered by Gemini.

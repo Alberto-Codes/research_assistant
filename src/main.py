@@ -216,7 +216,7 @@ def run_streamlit(args: argparse.Namespace) -> None:
     """
     # Get the path to the Streamlit app
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    app_path = os.path.join(current_dir, "research_agent", "ui", "streamlit", "gemini_chat.py")
+    app_path = os.path.join(current_dir, "research_agent", "ui", "streamlit", "app.py")
 
     # Check if the file exists
     if not os.path.exists(app_path):
@@ -231,7 +231,13 @@ def run_streamlit(args: argparse.Namespace) -> None:
             ]
             if py_files:
                 print(f"Found potential Streamlit files: {', '.join(py_files)}", file=sys.stderr)
-                app_path = os.path.join(streamlit_dir, py_files[0])
+                # Prefer app.py if it exists, otherwise fall back to gemini_chat.py
+                if "app.py" in py_files:
+                    app_path = os.path.join(streamlit_dir, "app.py")
+                elif "gemini_chat.py" in py_files:
+                    app_path = os.path.join(streamlit_dir, "gemini_chat.py")
+                else:
+                    app_path = os.path.join(streamlit_dir, py_files[0])
                 print(f"Using: {app_path}", file=sys.stderr)
             else:
                 print("No Python files found in the Streamlit directory.", file=sys.stderr)
