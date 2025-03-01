@@ -26,6 +26,14 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Enhanced Gemini Chat Streaming Reliability**: Fixed critical issues with the streaming response functionality:
+  - Added robust empty response handling to prevent "Streamed response ended without content or tool calls" errors
+  - Implemented a content validation system that provides friendly fallback messages for empty responses
+  - Enhanced error detection with specific handlers for different error types (rate limits, permissions, etc.)
+  - Improved user experience with more informative and less technical error messages
+  - Updated streaming chunk processing to filter out empty content
+  - Added detailed error logging for easier troubleshooting of streaming issues
+
 - **Implemented Code Coverage Testing**: Added comprehensive test coverage reporting capabilities:
   - Created PowerShell script (`run_tests.ps1`) at project root for easy test execution
   - Configured pytest-cov for generating detailed coverage reports
