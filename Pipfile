@@ -10,7 +10,7 @@ streamlit = "*"
 nest-asyncio = "*"
 research_agent = {file = ".", editable = true}
 chromadb = "*"
-
+research-agent = {file = ".", editable = true}
 
 [dev-packages]
 black = "*"

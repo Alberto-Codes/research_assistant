@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Protocol
 
 import chromadb
 from chromadb.config import Settings
+from chromadb.utils import embedding_functions
 
 # Module-specific logger
 logger = logging.getLogger(__name__)
@@ -104,6 +105,9 @@ class DefaultChromaDBClient:
         try:
             self.persist_directory = persist_directory
 
+            # Create a default embedding function
+            self.embedding_function = embedding_functions.DefaultEmbeddingFunction()
+
             # Create the persist directory if it doesn't exist
             os.makedirs(persist_directory, exist_ok=True)
 
@@ -133,7 +137,8 @@ class DefaultChromaDBClient:
         """
         try:
             collection = self.client.get_or_create_collection(
-                name=collection_name, embedding_function=None  # Use the default embedding function
+                name=collection_name,
+                embedding_function=self.embedding_function,  # Use the default embedding function
             )
             return collection
         except Exception as e:

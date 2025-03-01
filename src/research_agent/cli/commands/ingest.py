@@ -1,72 +1,67 @@
 """
-Command-line script for ingesting documents into ChromaDB.
+Document ingestion command implementation.
 
-This script provides a command-line interface for ingesting documents
-from a directory into a ChromaDB collection.
+This module defines the ingest command for the Research Agent CLI,
+which allows ingesting documents into ChromaDB from a specified directory.
 """
 
 import argparse
-import asyncio
 import logging
 import os
-import sys
 from typing import Any, Dict, List, Optional
 
-# Setup basic logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler()],
+from research_agent.core.doc_graph import (
+    load_documents_from_directory,
+    run_document_ingestion_graph,
 )
-logger = logging.getLogger(__name__)
 
-# Make sure we can import from the package
-try:
-    from research_agent.core.doc_graph import (
-        load_documents_from_directory,
-        run_document_ingestion_graph,
+
+def add_ingest_command(subparsers: "argparse._SubParsersAction") -> None:
+    """
+    Add the ingest command to the CLI subparsers.
+
+    Args:
+        subparsers: The subparsers object to add the command to.
+    """
+    ingest_parser = subparsers.add_parser(
+        "ingest",
+        help="Ingest documents into ChromaDB",
+        description="Ingest documents from a directory into a ChromaDB collection",
     )
-    from research_agent.core.graph import display_results
-except ImportError:
-    # Add parent directory to path if run directly
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-    sys.path.insert(0, parent_dir)
-    from research_agent.core.doc_graph import (
-        load_documents_from_directory,
-        run_document_ingestion_graph,
-    )
-    from research_agent.core.graph import display_results
 
-
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Ingest documents into ChromaDB from a directory")
-    parser.add_argument(
+    ingest_parser.add_argument(
         "--data-dir",
         type=str,
         default="./data",
         help="Directory containing documents to ingest",
     )
-    parser.add_argument(
+
+    ingest_parser.add_argument(
         "--collection",
         type=str,
         default="default_collection",
         help="Name of the ChromaDB collection to use",
     )
-    parser.add_argument(
+
+    ingest_parser.add_argument(
         "--chroma-dir",
         type=str,
         default="./chroma_db",
         help="Directory where ChromaDB data should be persisted",
     )
 
-    return parser.parse_args()
 
+async def run_ingest_command(args: argparse.Namespace) -> int:
+    """
+    Run the ingest command with the specified arguments.
 
-async def main():
-    """Main function to run the document ingestion."""
-    # Parse command line arguments
-    args = parse_args()
+    Args:
+        args: Parsed command line arguments.
+
+    Returns:
+        Exit code (0 for success, non-zero for errors).
+    """
+    logger = logging.getLogger(__name__)
 
     # Check if data directory exists
     if not os.path.exists(args.data_dir) or not os.path.isdir(args.data_dir):
@@ -122,13 +117,3 @@ async def main():
         print(f"  {i+1}. {doc_id} - {meta['filename']} ({meta['file_size']} bytes)")
 
     return 0
-
-
-if __name__ == "__main__":
-    # Set up asyncio for Windows if needed
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-    # Run the main function
-    exit_code = asyncio.run(main())
-    sys.exit(exit_code)
