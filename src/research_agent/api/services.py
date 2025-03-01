@@ -9,12 +9,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic_graph import Graph
 
-from research_agent.core.gemini.dependencies import GeminiDependencies
 from research_agent.core.document.graph import (
     load_documents_from_directory,
     run_document_ingestion_graph,
 )
 from research_agent.core.document.state import DocumentState
+from research_agent.core.gemini.dependencies import GeminiDependencies
 from research_agent.core.gemini.graph import get_gemini_agent_graph as core_get_gemini_agent_graph
 from research_agent.core.gemini.graph import run_gemini_agent_graph
 from research_agent.core.gemini.nodes import GeminiAgentNode

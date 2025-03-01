@@ -36,4 +36,4 @@ class GeminiState:
             f"ai_response='{self.ai_response}', "
             f"ai_time={self.ai_generation_time:.3f}s, "
             f"total_time={self.total_time:.3f}s)"
-        ) 
+        )

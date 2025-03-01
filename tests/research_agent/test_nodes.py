@@ -11,9 +11,9 @@ import pytest
 from pydantic_graph import End
 from pydantic_graph.nodes import GraphRunContext
 
-from research_agent.core.dependencies import GeminiDependencies, LLMClient
-from research_agent.core.nodes import GeminiAgentNode
-from research_agent.core.state import MyState
+from research_agent.core.gemini.dependencies import GeminiDependencies, LLMClient
+from research_agent.core.gemini.nodes import GeminiAgentNode
+from research_agent.core.gemini.state import GeminiState
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ def mock_gemini_for_node():
 @pytest.fixture
 def state_with_prompt():
     """Create a state with a user prompt for testing."""
-    return MyState(user_prompt="What is the meaning of life?")
+    return GeminiState(user_prompt="What is the meaning of life?")
 
 
 @pytest.mark.asyncio
@@ -57,10 +57,7 @@ async def test_gemini_agent_node_with_mock(mock_gemini_for_node, state_with_prom
 
     # Verify the execution history was updated
     assert len(ctx.state.node_execution_history) == 1
-    assert (
-        "GeminiAgentNode: Generated response to 'What is the meaning of life?'"
-        in ctx.state.node_execution_history[0]
-    )
+    assert "GeminiAgentNode: AI Response" in ctx.state.node_execution_history[0]
 
     # Verify the timing was recorded
     assert ctx.state.ai_generation_time > 0

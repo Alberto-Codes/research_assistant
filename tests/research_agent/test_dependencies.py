@@ -10,7 +10,7 @@ from typing import Protocol
 
 import pytest
 
-from research_agent.core.dependencies import (
+from research_agent.core.gemini.dependencies import (
     GeminiDependencies,
     GeminiLLMClient,
     LLMClient,

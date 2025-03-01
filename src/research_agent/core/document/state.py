@@ -41,4 +41,4 @@ class DocumentState:
             f"documents=[{len(self.documents)} docs], "
             f"collection='{self.chroma_collection_name}', "
             f"total_time={self.total_time:.3f}s)"
-        ) 
+        )

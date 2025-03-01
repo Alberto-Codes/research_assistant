@@ -12,8 +12,8 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 
 from research_agent.api.services import generate_ai_response
-from research_agent.core.dependencies import GeminiDependencies
-from research_agent.core.state import MyState
+from research_agent.core.gemini.dependencies import GeminiDependencies
+from research_agent.core.gemini.state import GeminiState
 from research_agent.ui.cli_entry import get_streamlit_script_path, main
 
 
@@ -51,7 +51,7 @@ def test_get_streamlit_script_path():
 
 
 @pytest.mark.asyncio
-@patch("research_agent.core.dependencies.GeminiLLMClient")
+@patch("research_agent.core.gemini.dependencies.GeminiLLMClient")
 async def test_generate_ai_response(mock_gemini_class):
     """Test that generate_ai_response works correctly."""
     # Arrange
@@ -63,7 +63,7 @@ async def test_generate_ai_response(mock_gemini_class):
     result = await generate_ai_response("Test prompt")
 
     # Assert
-    assert isinstance(result, MyState)
+    assert isinstance(result, GeminiState)
     assert result.user_prompt == "Test prompt"
     assert result.ai_response == "This is a test response."
 

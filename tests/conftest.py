@@ -10,12 +10,12 @@ import asyncio
 
 import pytest
 
-from research_agent.core.dependencies import (
+from research_agent.core.gemini.dependencies import (
     GeminiDependencies,
     GeminiLLMClient,
     LLMClient,
 )
-from research_agent.core.state import MyState
+from research_agent.core.gemini.state import GeminiState
 
 # We're removing the custom event_loop fixture and using the one provided by pytest-asyncio
 # Set default loop scope for asyncio fixtures
@@ -27,9 +27,9 @@ def initial_state():
     """Provide a clean initial state for tests.
 
     Returns:
-        A fresh MyState instance with default values.
+        A fresh GeminiState instance with default values.
     """
-    return MyState()
+    return GeminiState()
 
 
 @pytest.fixture

@@ -118,7 +118,7 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
     if not isinstance(graph_result, GraphRunResult):
         print(graph_result)
         return
-        
+
     # Import DocumentState here to avoid circular imports
     from research_agent.core.document.state import DocumentState
 
@@ -129,34 +129,34 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
     # Handle different state types with appropriate display
     if isinstance(state, GeminiState):
         print(f"\nResult: {output}")
-        
+
         if verbose:
             print(f"\nState: {state}")
-            
+
             if graph_result.errors:
                 print("\nErrors:")
                 for error in graph_result.errors:
                     print(f"  - {error}")
-                    
+
     elif isinstance(state, DocumentState):
         print(f"\nIngested {len(output.get('document_ids', []))} documents:")
-        
+
         for idx, doc_id in enumerate(output.get("document_ids", [])):
             print(f"  - Document {idx+1}: {doc_id}")
-            
+
         if verbose:
             print(f"\nState: {state}")
-            
+
             if graph_result.errors:
                 print("\nErrors:")
                 for error in graph_result.errors:
                     print(f"  - {error}")
     else:
         print(f"\nResult: {output}")
-        
+
         if verbose:
             print(f"\nState: {state}")
-            
+
             if graph_result.errors:
                 print("\nErrors:")
                 for error in graph_result.errors:
@@ -170,4 +170,4 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
 
     # Print timing information if available
     if hasattr(state, "total_time"):
-        print(f"\nTotal execution time: {state.total_time:.3f} seconds") 
+        print(f"\nTotal execution time: {state.total_time:.3f} seconds")

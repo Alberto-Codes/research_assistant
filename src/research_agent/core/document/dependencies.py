@@ -111,13 +111,9 @@ class DefaultChromaDBClient:
 
         # Log the configuration
         if host is not None:
-            logger.info(
-                f"Initializing ChromaDB client with host={host}, port={port}"
-            )
+            logger.info(f"Initializing ChromaDB client with host={host}, port={port}")
         else:
-            logger.info(
-                f"Initializing ChromaDB client with persist_directory={persist_directory}"
-            )
+            logger.info(f"Initializing ChromaDB client with persist_directory={persist_directory}")
 
         # Initialize the client and embedding function
         self._initialize_client()
@@ -205,6 +201,7 @@ class DefaultChromaDBClient:
             # Generate IDs if not provided
             if document_ids is None:
                 import uuid
+
                 document_ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
             # Create empty metadata if not provided
@@ -301,4 +298,4 @@ class ChromaDBDependencies:
         set up default dependencies based on the configuration.
         """
         if self.chroma_client is None:
-            self.chroma_client = DefaultChromaDBClient(persist_directory=self.persist_directory) 
+            self.chroma_client = DefaultChromaDBClient(persist_directory=self.persist_directory)

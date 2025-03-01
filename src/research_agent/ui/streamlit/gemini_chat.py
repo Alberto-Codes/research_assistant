@@ -21,9 +21,9 @@ except Exception as e:
     print(f"Warning: Could not apply nest_asyncio: {e}")
 
 # Import directly from core modules
-from research_agent.core.dependencies import GeminiDependencies, GeminiLLMClient
-from research_agent.core.graph import run_gemini_agent_graph
-from research_agent.core.state import MyState
+from research_agent.core.gemini.dependencies import GeminiDependencies, GeminiLLMClient
+from research_agent.core.gemini.graph import run_gemini_agent_graph
+from research_agent.core.gemini.state import GeminiState
 
 # Try to import pydantic-ai message parts
 try:
@@ -111,10 +111,20 @@ async def generate_streaming_response(
         async with gemini_client.agent.run_stream(
             user_prompt, message_history=pydantic_ai_messages
         ) as result:
+            # Initialize flag to track if we received any content
+            received_content = False
+
             # Stream chunks of text
             async for chunk in result.stream_text(delta=True):
-                full_response += chunk
-                message_placeholder.markdown(full_response + "▌")
+                if chunk:  # Only process non-empty chunks
+                    received_content = True
+                    full_response += chunk
+                    message_placeholder.markdown(full_response + "▌")
+
+            # If we didn't receive any content, provide a friendly message
+            if not received_content:
+                full_response = "I'm not sure how to respond to that. Could you please provide more context or ask a specific question?"
+                message_placeholder.markdown(full_response)
 
         # Clear the placeholder when done streaming
         message_placeholder.empty()
@@ -124,7 +134,20 @@ async def generate_streaming_response(
         # Log detailed error information
         import traceback
 
-        error_message = f"Error in streaming: {str(e)}"
+        # Check for specific error types
+        if "without content or tool calls" in str(e):
+            # This is the specific empty response error
+            error_message = "I couldn't generate a response to that message. Could you try asking something else?"
+        elif "rate limit" in str(e).lower():
+            # Rate limit error
+            error_message = "I've hit a rate limit. Please wait a moment before trying again."
+        elif "permission" in str(e).lower() or "access" in str(e).lower():
+            # Permission/authentication error
+            error_message = "There seems to be an authentication issue with the AI service. Please check your credentials."
+        else:
+            # Generic error
+            error_message = f"Error in streaming: {str(e)}"
+
         print(f"Exception details: {traceback.format_exc()}")
 
         # Update the placeholder with the error

@@ -1,7 +1,7 @@
 """
 Document ingestion components for the Research Agent.
 
-This package contains classes and utilities specifically for 
+This package contains classes and utilities specifically for
 the document ingestion functionality in the Research Agent.
 """
 
@@ -24,4 +24,4 @@ __all__ = [
     "ingest_documents",
     "load_documents_from_directory",
     "run_document_ingestion_graph",
-] 
+]

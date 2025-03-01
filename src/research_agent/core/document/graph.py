@@ -207,4 +207,4 @@ def load_documents_from_directory(directory_path: str) -> List[Dict[str, Any]]:
         logger.error(f"Error listing files in directory '{directory_path}': {e}")
 
     logger.info("Loaded %d documents from %s", len(documents), directory_path)
-    return documents 
+    return documents

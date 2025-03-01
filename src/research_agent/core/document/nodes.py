@@ -106,4 +106,4 @@ class ChromaDBIngestionNode(BaseNode[DocumentState, ChromaDBDependencies, Dict[s
             logger.error(error_message)
             result = {"error": error_message}
             ctx.state.ingestion_results = result
-            return End(result) 
+            return End(result)

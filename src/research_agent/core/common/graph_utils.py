@@ -17,4 +17,4 @@ logger = logging.getLogger(__name__)
 # to their respective modules to avoid circular imports:
 # - run_gemini_chat -> use core.gemini.graph.run_gemini_agent_graph directly
 # - ingest_documents -> use core.document.graph.run_document_ingestion_graph directly
-# - display_results -> use core.gemini.graph.display_results directly 
+# - display_results -> use core.gemini.graph.display_results directly

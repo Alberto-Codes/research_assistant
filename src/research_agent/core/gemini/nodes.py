@@ -75,16 +75,14 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
         # Execute the wrapped function
         try:
             result = await func(self, ctx, *args, **kwargs)
-            
+
             # Ensure result is an End object if expected
             if func.__name__ == "run" and not isinstance(result, End):
                 raise NodeError(f"Node {node_name} did not return an End object")
-                
+
             # Calculate and log execution time
             execution_time = time.time() - start_time
-            logger.debug(
-                "%s completed in %.3f seconds", node_name, execution_time
-            )
+            logger.debug("%s completed in %.3f seconds", node_name, execution_time)
 
             # Add to the execution history if available
             if hasattr(ctx.state, "node_execution_history"):
@@ -102,13 +100,11 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
         except Exception as e:
             # Log the error
             logger.error("Error in %s: %s", node_name, str(e))
-            
+
             # Add to the execution history if available
             if hasattr(ctx.state, "node_execution_history"):
-                ctx.state.node_execution_history.append(
-                    f"{node_name}: Error - {str(e)}"
-                )
-                
+                ctx.state.node_execution_history.append(f"{node_name}: Error - {str(e)}")
+
             # Re-raise the exception
             raise
 
@@ -166,4 +162,4 @@ class GeminiAgentNode(BaseNode[GeminiState, GeminiDependencies, str]):
         ctx.state.total_time = ctx.state.ai_generation_time
 
         # Return an End node with the AI response
-        return End(ctx.state.ai_response) 
+        return End(ctx.state.ai_response)

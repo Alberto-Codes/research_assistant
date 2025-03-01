@@ -5,12 +5,6 @@ This package contains the core components of the Research Agent application,
 organized into subpackages for different graph types.
 """
 
-# Import Gemini components
-from research_agent.core.gemini.dependencies import GeminiDependencies
-from research_agent.core.gemini.graph import get_gemini_agent_graph, run_gemini_agent_graph, display_results
-from research_agent.core.gemini.nodes import GeminiAgentNode
-from research_agent.core.gemini.state import GeminiState
-
 # Import Document components
 from research_agent.core.document.dependencies import ChromaDBDependencies
 from research_agent.core.document.graph import (
@@ -21,6 +15,16 @@ from research_agent.core.document.graph import (
 )
 from research_agent.core.document.nodes import ChromaDBIngestionNode
 from research_agent.core.document.state import DocumentState
+
+# Import Gemini components
+from research_agent.core.gemini.dependencies import GeminiDependencies
+from research_agent.core.gemini.graph import (
+    display_results,
+    get_gemini_agent_graph,
+    run_gemini_agent_graph,
+)
+from research_agent.core.gemini.nodes import GeminiAgentNode
+from research_agent.core.gemini.state import GeminiState
 
 # Old imports for backwards compatibility
 # These will be deprecated in a future version
@@ -45,4 +49,4 @@ __all__ = [
     "run_document_ingestion_graph",
     # Legacy components
     "configure_logging",
-] 
+]

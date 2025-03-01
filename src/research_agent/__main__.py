@@ -5,9 +5,9 @@ This module allows the research_agent package to be executed directly
 using 'python -m research_agent'.
 """
 
+import importlib.util
 import sys
 from pathlib import Path
-import importlib.util
 
 # Add the parent directory to sys.path to ensure main.py can be imported
 parent_dir = str(Path(__file__).parent.parent.absolute())
@@ -20,4 +20,4 @@ main_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(main_module)
 
 if __name__ == "__main__":
-    main_module.main() 
+    main_module.main()

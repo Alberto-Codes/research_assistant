@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from research_agent.api.services import generate_ai_response
-from research_agent.core.state import MyState
+from research_agent.core.gemini.state import GeminiState
 
 
 @pytest.fixture
@@ -23,11 +23,12 @@ def mock_gemini_llm_client():
 
 
 @pytest.mark.asyncio
-@patch("research_agent.core.dependencies.GeminiLLMClient")
+@patch("research_agent.core.gemini.dependencies.GeminiLLMClient")
 async def test_generate_ai_response(mock_gemini_class, mock_gemini_llm_client):
-    """Test the generate_ai_response service function."""
-    # Configure the mock
+    """Test the generate_ai_response function with a mock LLM client."""
+    # Set up mock instance
     mock_gemini_class.return_value = mock_gemini_llm_client
+    mock_gemini_llm_client.generate_text.return_value = "This is a test response from the mock."
 
     # Call the service function
     result = await generate_ai_response("What is the meaning of life?")
@@ -36,7 +37,7 @@ async def test_generate_ai_response(mock_gemini_class, mock_gemini_llm_client):
     mock_gemini_llm_client.generate_text.assert_called_once_with("What is the meaning of life?")
 
     # Verify the state has the expected structure
-    assert isinstance(result, MyState)
+    assert isinstance(result, GeminiState)
     assert result.user_prompt == "What is the meaning of life?"
     assert result.ai_response == "This is a test response from the mock."
     assert result.ai_generation_time > 0

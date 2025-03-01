@@ -1,7 +1,7 @@
 """
 Gemini chat components for the Research Agent.
 
-This package contains classes and utilities specifically for 
+This package contains classes and utilities specifically for
 the Gemini chat functionality in the Research Agent.
 """
 
@@ -19,4 +19,4 @@ __all__ = [
     "GeminiState",
     "get_gemini_agent_graph",
     "run_gemini_agent_graph",
-] 
+]

@@ -80,9 +80,7 @@ class GeminiLLMClient:
         try:
             # Initialize the model and agent at creation time
             self.vertex_model = VertexAIModel(
-                model_name=model_name, 
-                project_id=project_id, 
-                region=location
+                model_name=model_name, project_id=project_id, region=location
             )
             self.agent = Agent(self.vertex_model)
             logger.info("Successfully initialized Gemini model and agent")
@@ -102,7 +100,7 @@ class GeminiLLMClient:
         try:
             # Generate a response using the pre-initialized agent
             result = await self.agent.run(prompt)
-            
+
             # More robust attribute access with getattr and default
             return getattr(result, "data", str(result))
         except Exception as e:
@@ -134,4 +132,4 @@ class GeminiDependencies:
         set up default dependencies based on the configuration.
         """
         if self.llm_client is None:
-            self.llm_client = GeminiLLMClient(project_id=self.project_id) 
+            self.llm_client = GeminiLLMClient(project_id=self.project_id)
