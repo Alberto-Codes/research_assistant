@@ -7,6 +7,7 @@ This module defines the nodes used in the RAG workflow, including:
 - AnswerNode: Generates an answer using Gemini based on retrieved documents
 """
 
+import inspect
 import logging
 import time
 from dataclasses import dataclass
@@ -76,23 +77,63 @@ class RetrieveNode(BaseNode[RAGState, RAGDependencies]):
         # Query ChromaDB for relevant documents
         logger.info(f"Querying ChromaDB for documents relevant to: {ctx.state.query}")
         try:
-            results = await collection.query(query_texts=[ctx.state.query], n_results=5)
+            # Check if the query method is awaitable
+            if hasattr(collection.query, "__await__"):
+                logger.debug("Using awaitable query method")
+                results = await collection.query(query_texts=[ctx.state.query], n_results=5)
+            else:
+                logger.debug("Using non-awaitable query method")
+                results = collection.query(query_texts=[ctx.state.query], n_results=5)
+
+            logger.debug(f"Query results type: {type(results)}")
+            logger.debug(f"Query results: {results}")
+
+            if results is None:
+                logger.warning("Query results is None")
+                ctx.state.retrieved_documents = []
+                ctx.state.sources = []
+                return AnswerNode()
+
+            if not isinstance(results, dict):
+                logger.warning(f"Query results is not a dict, it's a {type(results)}")
+                if hasattr(results, "__await__"):
+                    logger.debug("Results is awaitable, awaiting it")
+                    results = await results
+                    logger.debug(f"Awaited results type: {type(results)}")
+                    logger.debug(f"Awaited results: {results}")
 
             # Store retrieved documents and metadata in state
             if results and "documents" in results and len(results["documents"]) > 0:
+                documents = results["documents"][0]
+                metadatas = results["metadatas"][0]
+
+                logger.debug(f"Documents type: {type(documents)}")
+                logger.debug(f"Metadatas type: {type(metadatas)}")
+
+                # Ensure we have lists, not coroutines
+                if hasattr(documents, "__await__"):
+                    logger.debug("Documents is awaitable, awaiting it")
+                    documents = await documents
+                    logger.debug(f"Awaited documents type: {type(documents)}")
+                if hasattr(metadatas, "__await__"):
+                    logger.debug("Metadatas is awaitable, awaiting it")
+                    metadatas = await metadatas
+                    logger.debug(f"Awaited metadatas type: {type(metadatas)}")
+
                 ctx.state.retrieved_documents = [
-                    {"content": doc, "metadata": meta}
-                    for doc, meta in zip(results["documents"][0], results["metadatas"][0])
+                    {"content": doc, "metadata": meta} for doc, meta in zip(documents, metadatas)
                 ]
 
                 # Store source information
                 ctx.state.sources = [
-                    meta.get("source", "unknown") for meta in results["metadatas"][0]
+                    meta.get("source", meta.get("filename", "unknown")) for meta in metadatas
                 ]
 
                 logger.info(f"Retrieved {len(ctx.state.retrieved_documents)} documents")
             else:
                 logger.warning("No documents returned from ChromaDB query")
+                if results:
+                    logger.debug(f"Results keys: {results.keys()}")
 
         except Exception as e:
             logger.error(f"Error during document retrieval: {str(e)}")
@@ -161,10 +202,100 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
 
         logger.info("Generating answer with Gemini model")
         try:
-            # Generate answer using Gemini
-            result = await model.generate(prompt)
-            ctx.state.answer = result.text
+            # Check if it's a VertexAIModel specifically
+            if model.__class__.__name__ == "VertexAIModel":
+                logger.debug("Detected VertexAIModel")
+                logger.debug(f"Available methods: {dir(model)}")
+
+                logger.error(
+                    "VertexAIModel should be wrapped in a PydanticAI Agent for proper usage"
+                )
+                ctx.state.answer = (
+                    "I'm sorry, I encountered an error while generating a response. "
+                    "The VertexAIModel needs to be wrapped in a PydanticAI Agent."
+                )
+
+            # Check if it's a PydanticAI Agent
+            elif model.__class__.__name__ == "Agent":
+                logger.debug("Detected PydanticAI Agent")
+                logger.debug(f"Available methods: {dir(model)}")
+
+                try:
+                    logger.debug("Using agent.run() method")
+                    # Use asynchronous run method since we're already in an async context
+                    result = await model.run(prompt)
+                    logger.debug(f"Agent result: {result}")
+
+                    # Extract the data from the result
+                    if hasattr(result, "data"):
+                        result_text = result.data
+                    else:
+                        result_text = str(result)
+
+                    logger.debug(f"Extracted text: {result_text}")
+                    ctx.state.answer = result_text
+                except Exception as e:
+                    logger.error(f"Error with PydanticAI Agent.run: {str(e)}")
+                    ctx.state.answer = (
+                        "I'm sorry, I encountered an error while generating a response. "
+                        f"Error details: {str(e)}"
+                    )
+
+            # Try different methods that LLM models commonly implement
+            elif hasattr(model, "generate") and callable(model.generate):
+                logger.debug("Using model.generate() method")
+                result = await model.generate(prompt)
+                if hasattr(result, "text"):
+                    result_text = result.text
+                elif hasattr(result, "content"):
+                    result_text = result.content
+                elif hasattr(result, "output"):
+                    result_text = result.output
+                else:
+                    # It might directly return a string
+                    result_text = str(result)
+
+            elif hasattr(model, "invoke") and callable(model.invoke):
+                logger.debug("Using model.invoke() method")
+                result = await model.invoke(prompt)
+                # Different models may return different result objects
+                if hasattr(result, "content"):
+                    result_text = result.content
+                else:
+                    result_text = str(result)
+
+            elif hasattr(model, "predict") and callable(model.predict):
+                logger.debug("Using model.predict() method")
+                result = await model.predict(prompt)
+                result_text = str(result)
+
+            elif hasattr(model, "predict_messages") and callable(model.predict_messages):
+                logger.debug("Using model.predict_messages() method")
+                result = await model.predict_messages([{"role": "user", "content": prompt}])
+                if hasattr(result, "content"):
+                    result_text = result.content
+                else:
+                    result_text = str(result)
+
+            elif hasattr(model, "__call__") and callable(model.__call__):
+                logger.debug("Using direct model call method")
+                result = await model(prompt)
+                result_text = str(result)
+
+            else:
+                raise ValueError(
+                    f"Could not find a suitable method to call on the model: {type(model)}"
+                )
+
+            if result_text is None:
+                raise ValueError(f"Could not extract text from result: {result}")
+
+            logger.debug(f"Generated result: {result}")
+            logger.debug(f"Extracted text: {result_text}")
+
+            ctx.state.answer = result_text
             logger.info(f"Generated answer with {len(ctx.state.answer)} characters")
+
         except Exception as e:
             logger.error(f"Error during answer generation: {str(e)}")
             ctx.state.answer = (

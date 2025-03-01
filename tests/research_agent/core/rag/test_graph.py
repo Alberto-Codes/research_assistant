@@ -70,16 +70,16 @@ async def test_run_rag_query(mock_chroma_collection, mock_gemini_model):
     # Arrange
     test_query = "How does ChromaDB work?"
 
-    # Create a mock result with a text attribute
+    # Create a mock result with a data attribute
     mock_result = MagicMock()
-    mock_result.text = "Generated answer.\n\nSources: doc1.md, doc2.md"
+    mock_result.data = "Generated answer.\n\nSources: doc1.md, doc2.md"
 
     # Patch the run method on the graph instance directly
     with (
         patch.object(
             rag_graph,
             "run",
-            return_value=MagicMock(text="Generated answer.\n\nSources: doc1.md, doc2.md"),
+            return_value=MagicMock(data="Generated answer.\n\nSources: doc1.md, doc2.md"),
         ) as mock_run,
         patch("time.time", side_effect=[100.0, 105.0]),
     ):
@@ -90,7 +90,7 @@ async def test_run_rag_query(mock_chroma_collection, mock_gemini_model):
         mock_state.generation_time = 3.0
 
         # Configure the mock to update the state
-        def mock_graph_run(state, deps):
+        def mock_graph_run(start_node, *, state=None, deps=None):
             # This simulates updating the state during graph execution
             assert state.query == test_query
             assert deps.chroma_collection == mock_chroma_collection
@@ -120,11 +120,14 @@ async def test_run_rag_query(mock_chroma_collection, mock_gemini_model):
 
         # Verify the run method was called with the right arguments
         mock_run.assert_called_once()
+        # Verify the start_node is a QueryNode
+        start_node_arg = mock_run.call_args[0][0]
+        assert isinstance(start_node_arg, QueryNode)
         # Verify the state passed had the correct query
-        state_arg = mock_run.call_args[0][0]
+        state_arg = mock_run.call_args[1]["state"]
         assert state_arg.query == test_query
         # Verify deps passed had the correct values
-        deps_arg = mock_run.call_args[0][1]
+        deps_arg = mock_run.call_args[1]["deps"]
         assert deps_arg.chroma_collection == mock_chroma_collection
         assert deps_arg.gemini_model == mock_gemini_model
         assert deps_arg.project_id == "test-project"

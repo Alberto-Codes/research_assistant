@@ -21,6 +21,7 @@ from typing import List, Optional
 
 from research_agent.cli.commands.gemini import add_gemini_command
 from research_agent.cli.commands.ingest import add_ingest_command
+from research_agent.cli.commands.rag import add_rag_command
 from research_agent.core.logging_config import configure_logging
 
 # Show more prominent deprecation warning
@@ -50,6 +51,7 @@ def create_parser() -> argparse.ArgumentParser:
     # Add all available commands
     add_gemini_command(subparsers)
     add_ingest_command(subparsers)
+    add_rag_command(subparsers)
 
     # Add common arguments to the main parser
     parser.add_argument(
@@ -97,6 +99,7 @@ async def main_async(args: Optional[List[str]] = None) -> int:
     command_handlers = {
         "gemini": "research_agent.cli.commands.gemini.run_gemini_command",
         "ingest": "research_agent.cli.commands.ingest.run_ingest_command",
+        "rag": "research_agent.cli.commands.rag.run_rag_command",
     }
 
     handler_path = command_handlers.get(parsed_args.command)

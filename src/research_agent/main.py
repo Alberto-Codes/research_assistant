@@ -18,6 +18,7 @@ from typing import List, Optional
 # Import CLI command handlers
 from research_agent.cli.commands.gemini import add_gemini_command, run_gemini_command
 from research_agent.cli.commands.ingest import add_ingest_command, run_ingest_command
+from research_agent.cli.commands.rag import add_rag_command, run_rag_command
 from research_agent.core.logging_config import configure_logging
 
 
@@ -57,6 +58,7 @@ def create_parser() -> argparse.ArgumentParser:
     # Add all available CLI commands
     add_gemini_command(cli_subparsers)
     add_ingest_command(cli_subparsers)
+    add_rag_command(cli_subparsers)
 
     # Add common arguments to the CLI parser
     cli_parser.add_argument(
@@ -148,6 +150,7 @@ async def run_cli_async(args: argparse.Namespace) -> int:
     command_handlers = {
         "gemini": run_gemini_command,
         "ingest": run_ingest_command,
+        "rag": run_rag_command,
     }
 
     # Get the handler for the command

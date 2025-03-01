@@ -7,7 +7,8 @@ based on document context.
 """
 
 import logging
-from typing import Optional
+import traceback
+from typing import Any, Dict, Optional
 
 # Try to import from pydantic_graph with a fallback for GraphError
 try:
@@ -57,8 +58,8 @@ rag_graph = create_rag_graph()
 
 
 async def run_rag_query(
-    query: str, chroma_collection: any, gemini_model: any, project_id: Optional[str] = None
-) -> dict:
+    query: str, chroma_collection: Any, gemini_model: Any, project_id: Optional[str] = None
+) -> Dict[str, Any]:
     """Run a RAG query through the graph workflow.
 
     Args:
@@ -72,32 +73,66 @@ async def run_rag_query(
     """
     import time
 
+    logger.debug("Starting run_rag_query")
+
     start_time = time.time()
 
     # Create dependencies
+    logger.debug(
+        f"Creating RAGDependencies with collection: {chroma_collection}, model: {gemini_model}"
+    )
     deps = RAGDependencies(
         chroma_collection=chroma_collection, gemini_model=gemini_model, project_id=project_id
     )
+    logger.debug(f"Created dependencies: {deps}")
 
     # Create initial state with the query
+    logger.debug(f"Creating RAGState with query: {query}")
     state = RAGState(query=query)
+    logger.debug(f"Created state: {state}")
 
     # Run the graph
     logger.info(f"Running RAG graph for query: '{query}'")
     try:
-        result = await rag_graph.run(state, deps)
-        answer = result.text
+        # Use the QueryNode as the start_node and pass state and deps as kwargs
+        logger.debug("Calling rag_graph.run with start_node=QueryNode()")
+
+        # Correct signature: run(start_node, state=state, deps=deps)
+        result = await rag_graph.run(QueryNode(), state=state, deps=deps)
+
+        logger.debug(f"Graph run completed with result type: {type(result)}")
+        logger.debug(f"Result attributes: {dir(result)}")
+
+        # Check what's in the result object
+        if hasattr(result, "data"):
+            logger.debug(f"Result has 'data' attribute: {result.data}")
+            answer = result.data
+        elif hasattr(result, "output"):
+            logger.debug(f"Result has 'output' attribute: {result.output}")
+            answer = result.output
+        elif hasattr(result, "text"):
+            logger.debug(f"Result has 'text' attribute: {result.text}")
+            answer = result.text
+        else:
+            logger.warning(f"Could not find expected attribute in result: {result}")
+            answer = f"Warning: Could not extract answer from result object: {result}"
+
+        logger.debug(f"Extracted answer: {answer}")
     except Exception as e:
         logger.error(f"Error running RAG graph: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         answer = f"Error: {str(e)}"
 
     # Extract timing information
     execution_time = time.time() - start_time
+    logger.debug(f"Execution completed in {execution_time:.2f}s")
 
     # Return the answer and timing information
-    return {
+    result_dict = {
         "answer": answer,
         "retrieval_time": state.retrieval_time,
         "generation_time": state.generation_time,
         "total_time": execution_time,
     }
+    logger.debug(f"Returning result: {result_dict}")
+    return result_dict
