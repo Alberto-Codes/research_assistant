@@ -25,8 +25,7 @@ from research_agent.core.logging_config import configure_logging
 
 # Show more prominent deprecation warning
 warnings.warn(
-    "The research_agent.cli.main module is deprecated. "
-    "Please use research_agent.main instead.",
+    "The research_agent.cli.main module is deprecated. " "Please use research_agent.main instead.",
     DeprecationWarning,
     stacklevel=2,
 )
@@ -134,4 +133,5 @@ def cli_entry() -> None:
 if __name__ == "__main__":
     # Import here to avoid circular imports
     import sys
+
     sys.exit(asyncio.run(main_async()))

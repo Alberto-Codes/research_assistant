@@ -5,10 +5,10 @@ This module tests the main entry point functionality, including argument parsing
 and dispatching to the appropriate interface.
 """
 
+import asyncio
 import importlib
 import sys
 from unittest.mock import MagicMock, patch
-import asyncio
 
 import pytest
 
@@ -47,7 +47,7 @@ def test_get_streamlit_script_path():
     """Test that the Streamlit script path is found correctly."""
     # Call the function with no arguments
     script_path = get_streamlit_script_path()
-    
+
     # Check that the result is a string and contains a path to a Python file
     assert isinstance(script_path, str)
     assert script_path.endswith(".py")
@@ -60,13 +60,13 @@ def test_get_streamlit_script_path():
 def test_main_runs_cli(mock_configure_logging, mock_run_streamlit, mock_run_cli_async):
     """Test that the main function runs the CLI interface when specified."""
     from research_agent.main import main_async
-    
+
     # Set up mock returns
     mock_run_cli_async.return_value = 0
-    
+
     # Run main with CLI arguments
     exit_code = asyncio.run(main_async(["cli", "gemini", "--prompt", "test"]))
-    
+
     # Assert that the CLI interface was called
     mock_run_cli_async.assert_called_once()
     mock_run_streamlit.assert_not_called()
@@ -76,18 +76,16 @@ def test_main_runs_cli(mock_configure_logging, mock_run_streamlit, mock_run_cli_
 @patch("research_agent.main.run_cli_async")
 @patch("research_agent.main.run_streamlit")
 @patch("research_agent.main.configure_logging")
-def test_main_runs_streamlit(
-    mock_configure_logging, mock_run_streamlit, mock_run_cli_async
-):
+def test_main_runs_streamlit(mock_configure_logging, mock_run_streamlit, mock_run_cli_async):
     """Test that the main function runs the Streamlit interface when specified."""
     from research_agent.main import main_async
-    
+
     # Set up mock returns
     mock_run_streamlit.return_value = 0
-    
+
     # Run main with UI arguments
     exit_code = asyncio.run(main_async(["ui", "--port", "8080"]))
-    
+
     # Assert that the Streamlit interface was called
     mock_run_cli_async.assert_not_called()
     mock_run_streamlit.assert_called_once()
@@ -115,8 +113,12 @@ def test_main_entry_point():
         content = f.read()
 
     # Check for key components that should be in the __main__.py file
-    assert "from research_agent.main import main" in content, "__main__.py should import main from research_agent.main"
-    assert 'if __name__ == "__main__":' in content, "__main__.py should have an if __name__ == '__main__' block"
+    assert (
+        "from research_agent.main import main" in content
+    ), "__main__.py should import main from research_agent.main"
+    assert (
+        'if __name__ == "__main__":' in content
+    ), "__main__.py should have an if __name__ == '__main__' block"
     assert "main()" in content, "__main__.py should call main()"
 
 

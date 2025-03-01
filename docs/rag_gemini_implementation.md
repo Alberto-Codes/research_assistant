@@ -9,18 +9,33 @@
   - 100% test coverage achieved for these components
   - Classes available in `src/research_agent/core/rag/dependencies.py` and `src/research_agent/core/rag/state.py`
 
-- ❌ **Step 2: Create Graph Nodes** - Not started
-- ❌ **Step 3: Create and Configure the Graph** - Not started
-- ❌ **Step 4: Service Function to Run the Graph** - Not started
+- ✅ **Step 2: Create Graph Nodes** - Completed
+  - QueryNode, RetrieveNode, and AnswerNode classes implemented
+  - Robust error handling in each node
+  - Detailed timing metrics for retrieval and generation phases
+  - 100% test coverage with comprehensive test cases
+  - Classes available in `src/research_agent/core/rag/nodes.py`
+
+- ✅ **Step 3: Create and Configure the Graph** - Completed
+  - Graph configuration with node connections implemented
+  - Singleton graph instance created for reuse
+  - Error handling for graph execution failures
+  - Available in `src/research_agent/core/rag/graph.py`
+
+- ✅ **Step 4: Service Function to Run the Graph** - Completed
+  - `run_rag_query` function implemented with proper timing metrics
+  - Consistent interface for CLI and UI integration
+  - Detailed error handling and logging
+  - Return structure with answer and timing information
+  
 - ❌ **Step 5: CLI Integration** - Not started
 - ❌ **Step 6: Streamlit UI Integration** - Not started
 - ❌ **Step 7: Update Main Entry Points** - Not started
 
 **Next Steps:**
-1. Implement the QueryNode, RetrieveNode, and AnswerNode classes
-2. Create and configure the RAG graph
-3. Implement service functions for running RAG queries
-4. Add CLI and UI integration points
+1. Integrate the RAG functionality into the CLI interface
+2. Add a Streamlit UI page for RAG queries
+3. Update main entry points to include the RAG command
 
 This document outlines the implementation plan for integrating ChromaDB with Gemini using pydantic-graph to create a powerful RAG (Retrieval Augmented Generation) system.
 

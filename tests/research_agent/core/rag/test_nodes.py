@@ -22,7 +22,7 @@ from research_agent.core.rag.state import RAGState
 def mock_chroma_collection():
     """Mock ChromaDB collection with query method."""
     collection = MagicMock()
-    
+
     # Mock the asynchronous query method
     collection.query = AsyncMock(
         return_value={
@@ -32,7 +32,7 @@ def mock_chroma_collection():
             "ids": [["id1", "id2"]],
         }
     )
-    
+
     return collection
 
 
@@ -81,10 +81,7 @@ def mock_failing_model():
 def query_context(mock_chroma_collection, mock_gemini_model):
     """Create a context for testing QueryNode."""
     state = RAGState(query="How does ChromaDB work?")
-    deps = RAGDependencies(
-        chroma_collection=mock_chroma_collection,
-        gemini_model=mock_gemini_model
-    )
+    deps = RAGDependencies(chroma_collection=mock_chroma_collection, gemini_model=mock_gemini_model)
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -92,10 +89,7 @@ def query_context(mock_chroma_collection, mock_gemini_model):
 def retrieve_context(mock_chroma_collection, mock_gemini_model):
     """Create a context for testing RetrieveNode."""
     state = RAGState(query="How does ChromaDB work?")
-    deps = RAGDependencies(
-        chroma_collection=mock_chroma_collection,
-        gemini_model=mock_gemini_model
-    )
+    deps = RAGDependencies(chroma_collection=mock_chroma_collection, gemini_model=mock_gemini_model)
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -103,10 +97,7 @@ def retrieve_context(mock_chroma_collection, mock_gemini_model):
 def empty_retrieve_context(mock_empty_collection, mock_gemini_model):
     """Create a context for testing RetrieveNode with empty results."""
     state = RAGState(query="How does ChromaDB work?")
-    deps = RAGDependencies(
-        chroma_collection=mock_empty_collection,
-        gemini_model=mock_gemini_model
-    )
+    deps = RAGDependencies(chroma_collection=mock_empty_collection, gemini_model=mock_gemini_model)
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -115,8 +106,7 @@ def failing_retrieve_context(mock_failing_collection, mock_gemini_model):
     """Create a context for testing RetrieveNode with a failing collection."""
     state = RAGState(query="How does ChromaDB work?")
     deps = RAGDependencies(
-        chroma_collection=mock_failing_collection,
-        gemini_model=mock_gemini_model
+        chroma_collection=mock_failing_collection, gemini_model=mock_gemini_model
     )
     return GraphRunContext(state=state, deps=deps)
 
@@ -127,15 +117,12 @@ def answer_context(mock_chroma_collection, mock_gemini_model):
     state = RAGState(query="How does ChromaDB work?")
     state.retrieved_documents = [
         {"content": "Document 1 content", "metadata": {"source": "doc1.md"}},
-        {"content": "Document 2 content", "metadata": {"source": "doc2.md"}}
+        {"content": "Document 2 content", "metadata": {"source": "doc2.md"}},
     ]
     state.sources = ["doc1.md", "doc2.md"]
-    
-    deps = RAGDependencies(
-        chroma_collection=mock_chroma_collection,
-        gemini_model=mock_gemini_model
-    )
-    
+
+    deps = RAGDependencies(chroma_collection=mock_chroma_collection, gemini_model=mock_gemini_model)
+
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -145,18 +132,15 @@ def empty_answer_context(mock_chroma_collection, mock_gemini_model):
     state = RAGState(query="How does ChromaDB work?")
     state.retrieved_documents = []
     state.sources = []
-    
+
     # Create a special mock for the empty document case
     empty_model = MagicMock()
     empty_model.generate = AsyncMock(
         return_value=MagicMock(text="I don't have enough information to answer this question.")
     )
-    
-    deps = RAGDependencies(
-        chroma_collection=mock_chroma_collection,
-        gemini_model=empty_model
-    )
-    
+
+    deps = RAGDependencies(chroma_collection=mock_chroma_collection, gemini_model=empty_model)
+
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -166,15 +150,14 @@ def failing_answer_context(mock_chroma_collection, mock_failing_model):
     state = RAGState(query="How does ChromaDB work?")
     state.retrieved_documents = [
         {"content": "Document 1 content", "metadata": {"source": "doc1.md"}},
-        {"content": "Document 2 content", "metadata": {"source": "doc2.md"}}
+        {"content": "Document 2 content", "metadata": {"source": "doc2.md"}},
     ]
     state.sources = ["doc1.md", "doc2.md"]
-    
+
     deps = RAGDependencies(
-        chroma_collection=mock_chroma_collection,
-        gemini_model=mock_failing_model
+        chroma_collection=mock_chroma_collection, gemini_model=mock_failing_model
     )
-    
+
     return GraphRunContext(state=state, deps=deps)
 
 
@@ -183,11 +166,11 @@ async def test_query_node_run(query_context):
     """Test that QueryNode initializes timing and returns RetrieveNode."""
     # Arrange
     node = QueryNode()
-    
+
     # Act
     with patch("time.time", return_value=12345.0):
         result = await node.run(query_context)
-    
+
     # Assert
     assert isinstance(result, RetrieveNode)
     assert query_context.state.total_time == 12345.0
@@ -198,21 +181,20 @@ async def test_retrieve_node_success(retrieve_context):
     """Test that RetrieveNode successfully retrieves documents."""
     # Arrange
     node = RetrieveNode()
-    
+
     # Act
     with patch("time.time", side_effect=[1000.0, 1002.0]):
         result = await node.run(retrieve_context)
-    
+
     # Assert
     assert isinstance(result, AnswerNode)
     assert len(retrieve_context.state.retrieved_documents) == 2
     assert retrieve_context.state.sources == ["doc1.md", "doc2.md"]
     assert retrieve_context.state.retrieval_time == 2.0  # 1002 - 1000
-    
+
     # Verify the collection was queried with the right parameters
     retrieve_context.deps.chroma_collection.query.assert_awaited_once_with(
-        query_texts=["How does ChromaDB work?"],
-        n_results=5
+        query_texts=["How does ChromaDB work?"], n_results=5
     )
 
 
@@ -221,10 +203,10 @@ async def test_retrieve_node_empty_results(empty_retrieve_context):
     """Test that RetrieveNode handles empty results gracefully."""
     # Arrange
     node = RetrieveNode()
-    
+
     # Act
     result = await node.run(empty_retrieve_context)
-    
+
     # Assert
     assert isinstance(result, AnswerNode)
     assert empty_retrieve_context.state.retrieved_documents == []
@@ -236,10 +218,10 @@ async def test_retrieve_node_failure(failing_retrieve_context):
     """Test that RetrieveNode handles exceptions gracefully."""
     # Arrange
     node = RetrieveNode()
-    
+
     # Act
     result = await node.run(failing_retrieve_context)
-    
+
     # Assert
     assert isinstance(result, AnswerNode)
     assert failing_retrieve_context.state.retrieved_documents == []
@@ -251,24 +233,24 @@ async def test_answer_node_success(answer_context):
     """Test that AnswerNode successfully generates an answer."""
     # Arrange
     node = AnswerNode()
-    
+
     # Set the initial total_time for the delta calculation
     with patch("time.time", return_value=1000.0):
         answer_context.state.total_time = time.time()
-    
+
     # Act - mock three time.time() calls: generation_start, generation_end, and total_time calculation
     with patch("time.time", side_effect=[1010.0, 1013.0, 1015.0]):
         result = await node.run(answer_context)
-    
+
     # Assert
     assert isinstance(result, End)
     assert answer_context.state.answer == "Generated answer based on the documents."
     assert answer_context.state.generation_time == 3.0  # 1013 - 1010
     assert answer_context.state.total_time == 15.0  # 1015 - 1000
-    
+
     # Check that the result includes sources in the data attribute
     assert "Sources: doc1.md, doc2.md" in result.data
-    
+
     # Verify the model was called with the expected prompt
     prompt_arg = answer_context.deps.gemini_model.generate.call_args[0][0]
     assert "CONTEXT:" in prompt_arg
@@ -284,17 +266,17 @@ async def test_answer_node_no_documents(empty_answer_context):
     """Test that AnswerNode handles no retrieved documents gracefully."""
     # Arrange
     node = AnswerNode()
-    
+
     # Set the initial total_time
     empty_answer_context.state.total_time = time.time()
-    
+
     # Act
     result = await node.run(empty_answer_context)
-    
+
     # Assert
     assert isinstance(result, End)
     assert "I don't have enough information" in empty_answer_context.state.answer
-    
+
     # Verify the model was called with the expected prompt
     prompt_arg = empty_answer_context.deps.gemini_model.generate.call_args[0][0]
     assert "CONTEXT:" in prompt_arg
@@ -306,13 +288,13 @@ async def test_answer_node_failure(failing_answer_context):
     """Test that AnswerNode handles model generation failures gracefully."""
     # Arrange
     node = AnswerNode()
-    
+
     # Set the initial total_time
     failing_answer_context.state.total_time = time.time()
-    
+
     # Act
     result = await node.run(failing_answer_context)
-    
+
     # Assert
     assert isinstance(result, End)
     assert "I'm sorry, I encountered an error" in failing_answer_context.state.answer
@@ -321,4 +303,4 @@ async def test_answer_node_failure(failing_answer_context):
 
 if __name__ == "__main__":
     """Run the tests directly."""
-    pytest.main(["-xvs", __file__]) 
+    pytest.main(["-xvs", __file__])

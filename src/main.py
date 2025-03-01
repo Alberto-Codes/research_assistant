@@ -12,14 +12,14 @@ Or run the package directly:
     python -m research_agent
 """
 
-import warnings
 import sys
+import warnings
+
 from research_agent.main import main
 
 # Show deprecation warning
 warnings.warn(
-    "The top-level main.py module is deprecated. "
-    "Please use research_agent.main instead.",
+    "The top-level main.py module is deprecated. " "Please use research_agent.main instead.",
     DeprecationWarning,
     stacklevel=2,
 )

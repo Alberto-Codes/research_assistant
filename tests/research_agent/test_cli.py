@@ -14,7 +14,13 @@ import pytest
 from research_agent.api.services import generate_ai_response
 from research_agent.core.gemini.dependencies import GeminiDependencies
 from research_agent.core.gemini.state import GeminiState
-from research_agent.main import get_streamlit_script_path, main, main_async, run_cli_async, run_streamlit
+from research_agent.main import (
+    get_streamlit_script_path,
+    main,
+    main_async,
+    run_cli_async,
+    run_streamlit,
+)
 
 
 @pytest.mark.asyncio
@@ -22,12 +28,14 @@ from research_agent.main import get_streamlit_script_path, main, main_async, run
 @patch("research_agent.main.run_cli_async")
 @patch("research_agent.main.configure_logging")
 @patch("research_agent.main.create_parser")
-async def test_main_async_calls_correct_interface(mock_create_parser, mock_configure_logging, mock_run_cli_async, mock_run_streamlit):
+async def test_main_async_calls_correct_interface(
+    mock_create_parser, mock_configure_logging, mock_run_cli_async, mock_run_streamlit
+):
     """Test that main_async calls the correct interface handler based on args."""
     # Arrange
     mock_parser = MagicMock()
     mock_create_parser.return_value = mock_parser
-    
+
     # Test CLI interface
     cli_args = MagicMock()
     cli_args.interface = "cli"
@@ -35,20 +43,20 @@ async def test_main_async_calls_correct_interface(mock_create_parser, mock_confi
     cli_args.log_file = None
     mock_parser.parse_args.return_value = cli_args
     mock_run_cli_async.return_value = 0
-    
+
     # Act
     result = await main_async(["cli", "gemini"])
-    
+
     # Assert
     mock_configure_logging.assert_called_once_with(log_level="INFO", log_file=None)
     mock_run_cli_async.assert_called_once_with(cli_args)
     assert result == 0
-    
+
     # Reset mocks
     mock_parser.parse_args.reset_mock()
     mock_run_cli_async.reset_mock()
     mock_configure_logging.reset_mock()
-    
+
     # Test UI interface
     ui_args = MagicMock()
     ui_args.interface = "ui"
@@ -56,10 +64,10 @@ async def test_main_async_calls_correct_interface(mock_create_parser, mock_confi
     ui_args.log_file = "test.log"
     mock_parser.parse_args.return_value = ui_args
     mock_run_streamlit.return_value = 0
-    
+
     # Act
     result = await main_async(["ui"])
-    
+
     # Assert
     mock_configure_logging.assert_called_once_with(log_level="DEBUG", log_file="test.log")
     mock_run_streamlit.assert_called_once_with(ui_args)
@@ -75,36 +83,36 @@ async def test_run_cli_async(mock_run_ingest_command, mock_run_gemini_command):
     args = MagicMock()
     args.command = "gemini"
     mock_run_gemini_command.return_value = 0
-    
+
     # Act - test with gemini command
     result = await run_cli_async(args)
-    
+
     # Assert
     mock_run_gemini_command.assert_called_once_with(args)
     mock_run_ingest_command.assert_not_called()
     assert result == 0
-    
+
     # Reset mocks
     mock_run_gemini_command.reset_mock()
-    
+
     # Test with ingest command
     args.command = "ingest"
     mock_run_ingest_command.return_value = 0
-    
+
     # Act
     result = await run_cli_async(args)
-    
+
     # Assert
     mock_run_ingest_command.assert_called_once_with(args)
     mock_run_gemini_command.assert_not_called()
     assert result == 0
-    
+
     # Test with unknown command
     args.command = "unknown"
-    
+
     # Act
     result = await run_cli_async(args)
-    
+
     # Assert
     assert result == 1  # Should return error code
 
@@ -117,15 +125,14 @@ def test_run_streamlit(mock_get_path, mock_subprocess_run):
     mock_get_path.return_value = "/mock/path/to/app.py"
     args = MagicMock()
     args.port = 8501
-    
+
     # Act
     result = run_streamlit(args)
-    
+
     # Assert
     mock_get_path.assert_called_once()
     mock_subprocess_run.assert_called_once_with(
-        ["streamlit", "run", "/mock/path/to/app.py", "--server.port", "8501"],
-        check=True
+        ["streamlit", "run", "/mock/path/to/app.py", "--server.port", "8501"], check=True
     )
     assert result == 0
 
@@ -138,10 +145,10 @@ def test_run_streamlit_file_not_found(mock_get_path, mock_subprocess_run):
     mock_get_path.side_effect = FileNotFoundError("No Streamlit application found")
     args = MagicMock()
     args.port = 8501
-    
+
     # Act
     result = run_streamlit(args)
-    
+
     # Assert
     assert result == 1
     mock_subprocess_run.assert_not_called()
@@ -186,10 +193,10 @@ def test_main(mock_sys_exit, mock_main_async, mock_asyncio_run):
     """Test that main() sets up asyncio and exits with the correct code."""
     # Arrange
     mock_asyncio_run.return_value = 42  # arbitrary exit code
-    
+
     # Act
     main()
-    
+
     # Assert
     mock_main_async.assert_called_once()
     mock_asyncio_run.assert_called_once()
@@ -201,8 +208,9 @@ def test_cli_entry(mock_main):
     """Test that cli_entry() calls main()."""
     # Act
     from research_agent.main import cli_entry
+
     cli_entry()
-    
+
     # Assert
     mock_main.assert_called_once()
 

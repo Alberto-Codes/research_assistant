@@ -12,8 +12,8 @@ Or run the package directly:
     python -m research_agent
 """
 
-import warnings
 import sys
+import warnings
 
 # Show deprecation warning
 warnings.warn(
@@ -26,10 +26,12 @@ warnings.warn(
 # Import the main function with an alias to avoid name collision
 from research_agent.main import main as main_func
 
+
 # For backward compatibility
 def run_gemini_chat():
     """Run the Gemini chat Streamlit app using the new main module."""
     main_func(["ui"])
+
 
 # For backward compatibility
 def main():

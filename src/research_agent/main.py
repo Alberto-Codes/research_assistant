@@ -115,12 +115,12 @@ def get_streamlit_script_path() -> str:
     """
     # Get the directory of the research_agent package
     package_dir = Path(__file__).parent.resolve()
-    
+
     # Look for app.py first, then fall back to gemini_chat.py
     streamlit_dir = package_dir / "ui" / "streamlit"
     app_path = streamlit_dir / "app.py"
     gemini_chat_path = streamlit_dir / "gemini_chat.py"
-    
+
     if app_path.exists():
         return str(app_path)
     elif gemini_chat_path.exists():
@@ -130,7 +130,7 @@ def get_streamlit_script_path() -> str:
         py_files = list(streamlit_dir.glob("*.py"))
         if py_files:
             return str(py_files[0])
-        
+
         raise FileNotFoundError(f"No Streamlit application found in {streamlit_dir}")
 
 
@@ -149,13 +149,13 @@ async def run_cli_async(args: argparse.Namespace) -> int:
         "gemini": run_gemini_command,
         "ingest": run_ingest_command,
     }
-    
+
     # Get the handler for the command
     handler = command_handlers.get(args.command)
     if not handler:
         logging.error(f"Unknown command: {args.command}")
         return 1
-    
+
     # Run the command
     try:
         return await handler(args)
@@ -170,14 +170,14 @@ def run_streamlit(args: argparse.Namespace) -> int:
 
     Args:
         args: Parsed command-line arguments.
-        
+
     Returns:
         Exit code (0 for success, non-zero for errors).
     """
     try:
         # Get the path to the Streamlit application
         app_path = get_streamlit_script_path()
-        
+
         # Build the command to run Streamlit
         cmd = [
             "streamlit",
@@ -186,7 +186,7 @@ def run_streamlit(args: argparse.Namespace) -> int:
             "--server.port",
             str(args.port),
         ]
-        
+
         # Run Streamlit
         subprocess.run(cmd, check=True)
         return 0
@@ -204,20 +204,20 @@ def run_streamlit(args: argparse.Namespace) -> int:
 async def main_async(args: Optional[List[str]] = None) -> int:
     """
     Main async entry point that processes arguments and dispatches to the appropriate interface.
-    
+
     Args:
         args: Command line arguments. If None, sys.argv[1:] is used.
-        
+
     Returns:
         Exit code (0 for success, non-zero for errors).
     """
     # Parse arguments
     parser = create_parser()
     parsed_args = parser.parse_args(args)
-    
+
     # Configure logging
     configure_logging(log_level=parsed_args.log_level, log_file=parsed_args.log_file)
-    
+
     # Dispatch to the appropriate interface
     if parsed_args.interface == "cli":
         return await run_cli_async(parsed_args)
@@ -235,7 +235,7 @@ def main() -> None:
     # Set up asyncio for Windows if needed
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-        
+
     # Run the async main function
     exit_code = asyncio.run(main_async())
     sys.exit(exit_code)
@@ -250,4 +250,4 @@ def cli_entry() -> None:
 
 
 if __name__ == "__main__":
-    main() 
+    main()
