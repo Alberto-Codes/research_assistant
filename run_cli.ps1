@@ -22,6 +22,9 @@ foreach ($arg in $args) {
 # Set log level based on debug mode
 $LogLevel = if ($DebugMode) { "DEBUG" } else { "INFO" }
 
+# Set UTF-8 encoding for the console to handle Unicode characters
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 Write-Host "==============================================" -ForegroundColor Cyan
 Write-Host "Research Agent CLI Development Test Script" -ForegroundColor Cyan
 Write-Host "==============================================" -ForegroundColor Cyan
@@ -46,12 +49,12 @@ function Run-Test {
         # Create a temp file for output
         $outputFile = New-TemporaryFile
         
-        # Run the command and capture output to the temp file
+        # Run the command and capture output to the temp file, ensuring UTF-8 encoding
         Invoke-Expression "$Command *> $outputFile"
         $result = $LASTEXITCODE -eq 0
         
-        # Read and display the output
-        $output = Get-Content -Path $outputFile -Raw
+        # Read and display the output with UTF-8 encoding
+        $output = Get-Content -Path $outputFile -Raw -Encoding UTF8
         Write-Host "COMMAND OUTPUT:" -ForegroundColor Cyan
         Write-Host $output
         

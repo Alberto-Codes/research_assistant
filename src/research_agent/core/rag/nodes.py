@@ -79,14 +79,9 @@ class RetrieveNode(BaseNode[RAGState, RAGDependencies]):
         try:
             # Check if the query method is awaitable
             if hasattr(collection.query, "__await__"):
-                logger.debug("Using awaitable query method")
                 results = await collection.query(query_texts=[ctx.state.query], n_results=5)
             else:
-                logger.debug("Using non-awaitable query method")
                 results = collection.query(query_texts=[ctx.state.query], n_results=5)
-
-            logger.debug(f"Query results type: {type(results)}")
-            logger.debug(f"Query results: {results}")
 
             if results is None:
                 logger.warning("Query results is None")
@@ -97,28 +92,18 @@ class RetrieveNode(BaseNode[RAGState, RAGDependencies]):
             if not isinstance(results, dict):
                 logger.warning(f"Query results is not a dict, it's a {type(results)}")
                 if hasattr(results, "__await__"):
-                    logger.debug("Results is awaitable, awaiting it")
                     results = await results
-                    logger.debug(f"Awaited results type: {type(results)}")
-                    logger.debug(f"Awaited results: {results}")
 
             # Store retrieved documents and metadata in state
             if results and "documents" in results and len(results["documents"]) > 0:
                 documents = results["documents"][0]
                 metadatas = results["metadatas"][0]
 
-                logger.debug(f"Documents type: {type(documents)}")
-                logger.debug(f"Metadatas type: {type(metadatas)}")
-
                 # Ensure we have lists, not coroutines
                 if hasattr(documents, "__await__"):
-                    logger.debug("Documents is awaitable, awaiting it")
                     documents = await documents
-                    logger.debug(f"Awaited documents type: {type(documents)}")
                 if hasattr(metadatas, "__await__"):
-                    logger.debug("Metadatas is awaitable, awaiting it")
                     metadatas = await metadatas
-                    logger.debug(f"Awaited metadatas type: {type(metadatas)}")
 
                 ctx.state.retrieved_documents = [
                     {"content": doc, "metadata": meta} for doc, meta in zip(documents, metadatas)
@@ -132,8 +117,6 @@ class RetrieveNode(BaseNode[RAGState, RAGDependencies]):
                 logger.info(f"Retrieved {len(ctx.state.retrieved_documents)} documents")
             else:
                 logger.warning("No documents returned from ChromaDB query")
-                if results:
-                    logger.debug(f"Results keys: {results.keys()}")
 
         except Exception as e:
             logger.error(f"Error during document retrieval: {str(e)}")
@@ -204,9 +187,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
         try:
             # Check if it's a VertexAIModel specifically
             if model.__class__.__name__ == "VertexAIModel":
-                logger.debug("Detected VertexAIModel")
-                logger.debug(f"Available methods: {dir(model)}")
-
                 logger.error(
                     "VertexAIModel should be wrapped in a PydanticAI Agent for proper usage"
                 )
@@ -217,14 +197,9 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
 
             # Check if it's a PydanticAI Agent
             elif model.__class__.__name__ == "Agent":
-                logger.debug("Detected PydanticAI Agent")
-                logger.debug(f"Available methods: {dir(model)}")
-
                 try:
-                    logger.debug("Using agent.run() method")
                     # Use asynchronous run method since we're already in an async context
                     result = await model.run(prompt)
-                    logger.debug(f"Agent result: {result}")
 
                     # Extract the data from the result
                     if hasattr(result, "data"):
@@ -232,7 +207,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
                     else:
                         result_text = str(result)
 
-                    logger.debug(f"Extracted text: {result_text}")
                     ctx.state.answer = result_text
                 except Exception as e:
                     logger.error(f"Error with PydanticAI Agent.run: {str(e)}")
@@ -243,7 +217,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
 
             # Try different methods that LLM models commonly implement
             elif hasattr(model, "generate") and callable(model.generate):
-                logger.debug("Using model.generate() method")
                 result = await model.generate(prompt)
                 if hasattr(result, "text"):
                     result_text = result.text
@@ -256,7 +229,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
                     result_text = str(result)
 
             elif hasattr(model, "invoke") and callable(model.invoke):
-                logger.debug("Using model.invoke() method")
                 result = await model.invoke(prompt)
                 # Different models may return different result objects
                 if hasattr(result, "content"):
@@ -265,12 +237,10 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
                     result_text = str(result)
 
             elif hasattr(model, "predict") and callable(model.predict):
-                logger.debug("Using model.predict() method")
                 result = await model.predict(prompt)
                 result_text = str(result)
 
             elif hasattr(model, "predict_messages") and callable(model.predict_messages):
-                logger.debug("Using model.predict_messages() method")
                 result = await model.predict_messages([{"role": "user", "content": prompt}])
                 if hasattr(result, "content"):
                     result_text = result.content
@@ -278,7 +248,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
                     result_text = str(result)
 
             elif hasattr(model, "__call__") and callable(model.__call__):
-                logger.debug("Using direct model call method")
                 result = await model(prompt)
                 result_text = str(result)
 
@@ -289,9 +258,6 @@ class AnswerNode(BaseNode[RAGState, RAGDependencies]):
 
             if result_text is None:
                 raise ValueError(f"Could not extract text from result: {result}")
-
-            logger.debug(f"Generated result: {result}")
-            logger.debug(f"Extracted text: {result_text}")
 
             ctx.state.answer = result_text
             logger.info(f"Generated answer with {len(ctx.state.answer)} characters")

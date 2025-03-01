@@ -114,9 +114,9 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
         graph_result: The result of running a graph.
         verbose: Whether to display verbose information.
     """
-    # If it's not a GraphRunResult, just print it and return
+    # If it's not a GraphRunResult, just log it and return
     if not isinstance(graph_result, GraphRunResult):
-        print(graph_result)
+        logger.info(f"Graph result is not a GraphRunResult: {graph_result}")
         return
 
     # Import DocumentState here to avoid circular imports
@@ -128,46 +128,46 @@ def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = Fa
 
     # Handle different state types with appropriate display
     if isinstance(state, GeminiState):
-        print(f"\nResult: {output}")
+        logger.info(f"Result: {output}")
 
         if verbose:
-            print(f"\nState: {state}")
+            logger.debug(f"State: {state}")
 
             if graph_result.errors:
-                print("\nErrors:")
+                logger.warning("Errors occurred during graph execution")
                 for error in graph_result.errors:
-                    print(f"  - {error}")
+                    logger.warning(f"Error: {error}")
 
     elif isinstance(state, DocumentState):
-        print(f"\nIngested {len(output.get('document_ids', []))} documents:")
-
-        for idx, doc_id in enumerate(output.get("document_ids", [])):
-            print(f"  - Document {idx+1}: {doc_id}")
+        doc_count = len(output.get("document_ids", []))
+        logger.info(f"Ingested {doc_count} documents")
 
         if verbose:
-            print(f"\nState: {state}")
+            for idx, doc_id in enumerate(output.get("document_ids", [])):
+                logger.debug(f"Document {idx+1}: {doc_id}")
+
+        if verbose:
+            logger.debug(f"State: {state}")
 
             if graph_result.errors:
-                print("\nErrors:")
+                logger.warning("Errors occurred during graph execution")
                 for error in graph_result.errors:
-                    print(f"  - {error}")
+                    logger.warning(f"Error: {error}")
     else:
-        print(f"\nResult: {output}")
-
+        logger.info(f"Result: {output}")
+        
         if verbose:
-            print(f"\nState: {state}")
-
+            logger.debug(f"State: {state}")
+            
             if graph_result.errors:
-                print("\nErrors:")
+                logger.warning("Errors occurred during graph execution")
                 for error in graph_result.errors:
-                    print(f"  - {error}")
+                    logger.warning(f"Error: {error}")
 
-    # Print execution history if available
-    if hasattr(state, "node_execution_history") and verbose:
-        print("\nExecution History:")
-        for entry in state.node_execution_history:
-            print(f"  {entry}")
+    if verbose and hasattr(state, "execution_history"):
+        logger.debug("Execution History:")
+        for entry in state.execution_history:
+            logger.debug(f"  {entry}")
 
-    # Print timing information if available
     if hasattr(state, "total_time"):
-        print(f"\nTotal execution time: {state.total_time:.3f} seconds")
+        logger.info(f"Total execution time: {state.total_time:.3f} seconds")

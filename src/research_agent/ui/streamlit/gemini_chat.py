@@ -7,6 +7,8 @@ the Gemini LLM through the pydantic-graph implementation.
 
 import asyncio
 import json
+import logging
+import traceback
 import time
 from datetime import datetime
 from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
@@ -14,11 +16,14 @@ from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
 import nest_asyncio
 import streamlit as st
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
 # Apply nest_asyncio to allow nested event loops
 try:
     nest_asyncio.apply()
 except Exception as e:
-    print(f"Warning: Could not apply nest_asyncio: {e}")
+    st.warning(f"Could not apply nest_asyncio: {e}")
 
 # Import directly from core modules
 from research_agent.core.gemini.dependencies import GeminiDependencies, GeminiLLMClient
@@ -42,9 +47,7 @@ try:
     PYDANTIC_AI_AVAILABLE = True
 except ImportError:
     PYDANTIC_AI_AVAILABLE = False
-    print(
-        "Warning: pydantic_ai.messages modules not available. Streaming may not work as expected."
-    )
+    st.warning("pydantic_ai.messages modules not available. Streaming may not work as expected.")
 
 # Only set page config when running this file directly, not when imported
 if __name__ == "__main__":
@@ -132,8 +135,6 @@ async def generate_streaming_response(
 
     except Exception as e:
         # Log detailed error information
-        import traceback
-
         # Check for specific error types
         if "without content or tool calls" in str(e):
             # This is the specific empty response error
@@ -148,7 +149,7 @@ async def generate_streaming_response(
             # Generic error
             error_message = f"Error in streaming: {str(e)}"
 
-        print(f"Exception details: {traceback.format_exc()}")
+        logger.error(f"Exception details: {traceback.format_exc()}")
 
         # Update the placeholder with the error
         message_placeholder.empty()

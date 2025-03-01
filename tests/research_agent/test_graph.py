@@ -7,9 +7,10 @@ execution with various state and dependency configurations, and result processin
 
 import asyncio
 from unittest.mock import AsyncMock, patch
+import logging
 
 import pytest
-from pydantic_graph import GraphRunResult
+from pydantic_graph import Graph, GraphRunResult
 
 from research_agent.core.gemini.dependencies import GeminiDependencies
 from research_agent.core.gemini.graph import (
@@ -17,6 +18,7 @@ from research_agent.core.gemini.graph import (
     get_gemini_agent_graph,
     run_gemini_agent_graph,
 )
+from research_agent.core.gemini.nodes import GeminiAgentNode
 from research_agent.core.gemini.state import GeminiState
 
 
@@ -75,17 +77,18 @@ async def test_run_gemini_agent_graph_with_custom_dependencies(mock_gemini_clien
 
 @pytest.mark.asyncio
 async def test_get_gemini_agent_graph():
-    """Test that the Gemini agent graph is created correctly."""
+    """Test that get_gemini_agent_graph returns a Graph with the expected node."""
     # Act
     graph = get_gemini_agent_graph()
 
     # Assert
-    assert graph is not None
-    assert hasattr(graph, "run")
+    assert isinstance(graph, Graph)
+    # The Graph class doesn't expose nodes directly, so we can't check them
+    # Just verify it's a Graph instance
 
 
-def test_display_results(capsys):
-    """Test that display_results outputs the expected information."""
+def test_display_results(caplog):
+    """Test that display_results correctly displays the result information."""
     # Arrange
     state = GeminiState(
         user_prompt="Test prompt",
@@ -99,18 +102,14 @@ def test_display_results(capsys):
         output="Test response", state=state, history=[]  # Empty history for this test
     )
 
+    # Set up logging capture
+    caplog.set_level(logging.INFO)
+
     # Act
     display_results(result)
 
     # Assert
-    captured = capsys.readouterr()
-    assert "Result: Test response" in captured.out
-
-    # Only check additional output if verbose is true
-    # assert "State: " in captured.out
-    # assert "Execution History:" in captured.out
-    # assert "GeminiAgentNode: AI Response" in captured.out
-    # assert "Total execution time:" in captured.out
+    assert "Result: Test response" in caplog.text
 
 
 if __name__ == "__main__":

@@ -135,7 +135,13 @@ async def run_rag_command(args: argparse.Namespace) -> int:
         # Print the results
         print("\nRAG Query Results:")
         print("=" * 80)
-        print(result["answer"])
+        try:
+            print(result["answer"])
+        except UnicodeEncodeError as e:
+            # Handle Unicode encoding error by replacing problematic characters
+            sanitized_answer = result["answer"].encode('ascii', 'replace').decode('ascii')
+            logger.warning(f"Unicode encoding issue detected: {e}. Using ASCII with replacements.")
+            print(sanitized_answer)
         print("=" * 80)
         print(f"Retrieval time: {result['retrieval_time']:.2f}s")
         print(f"Generation time: {result['generation_time']:.2f}s")

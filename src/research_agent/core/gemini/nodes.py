@@ -66,9 +66,6 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
         # Get the node class name for logging
         node_name = self.__class__.__name__
 
-        # Log the start of execution
-        logger.debug("Starting execution of %s", node_name)
-
         # Record the start time
         start_time = time.time()
 
@@ -80,9 +77,8 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
             if func.__name__ == "run" and not isinstance(result, End):
                 raise NodeError(f"Node {node_name} did not return an End object")
 
-            # Calculate and log execution time
+            # Calculate execution time
             execution_time = time.time() - start_time
-            logger.debug("%s completed in %.3f seconds", node_name, execution_time)
 
             # Add to the execution history if available
             if hasattr(ctx.state, "node_execution_history"):
