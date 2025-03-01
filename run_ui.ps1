@@ -22,7 +22,7 @@ if (-not (Test-Path env:GOOGLE_APPLICATION_CREDENTIALS)) {
 }
 
 # Get the path to the Streamlit app
-$streamlitAppPath = Join-Path -Path (Get-Location) -ChildPath "src\research_agent\ui\streamlit\gemini_chat.py"
+$streamlitAppPath = Join-Path -Path (Get-Location) -ChildPath "src\research_agent\ui\streamlit\app.py"
 
 # Verify file exists
 if (-not (Test-Path $streamlitAppPath)) {

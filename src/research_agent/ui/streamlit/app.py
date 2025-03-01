@@ -12,6 +12,7 @@ import streamlit as st
 # Import individual UI components
 from research_agent.ui.streamlit.document_ingestion import render_document_ingestion_ui
 from research_agent.ui.streamlit.gemini_chat import main as render_chat_ui
+from research_agent.ui.streamlit.rag_search import render_rag_search_ui
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 PAGES = {
     "Chat with Gemini": render_chat_ui,
     "Document Ingestion": render_document_ingestion_ui,
+    "RAG Search": render_rag_search_ui,
 }
 
 
