@@ -9,6 +9,7 @@ pydantic-graph = "*"
 streamlit = "*"
 nest-asyncio = "*"
 research_agent = {file = ".", editable = true}
+chromadb = "*"
 
 
 [dev-packages]
