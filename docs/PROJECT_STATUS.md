@@ -147,6 +147,15 @@ Think of it as a pipeline where information flows through different stations (or
   - Added source field fallback to use filename when source is not available
   - Enhanced document citation for better content attribution
 
+- **Enhanced Unicode Handling in CLI and RAG**: Improved cross-platform compatibility with robust Unicode handling:
+  - Added proper UTF-8 encoding configuration in PowerShell test scripts to handle international characters
+  - Implemented fallback error handling in RAG command output to gracefully handle Unicode encoding issues
+  - Added intelligent character replacement for emoji and special characters when terminal encoding limitations are encountered
+  - Enhanced logging to provide better context when encoding issues occur
+  - Updated the RAG CLI command to sanitize output when needed while preserving information content
+  - Ensured consistent text handling across Windows and Unix environments
+  - Fixed CLI test script to properly render UTF-8 encoded content in test output
+
 ### Recent Updates
 
 - **Improved CLI Command Structure**: Enhanced the command-line interface with separate commands:
