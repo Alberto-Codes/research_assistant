@@ -6,13 +6,15 @@ including the LLMClient protocol and its implementations using the
 Gemini model via Pydantic-AI.
 """
 
+import logging
 from dataclasses import dataclass
-from typing import Optional, Protocol
+from typing import Any, Optional, Protocol
 
 from pydantic_ai import Agent
-
-# Replace Google Cloud imports with pydantic_ai imports
 from pydantic_ai.models.vertexai import VertexAIModel
+
+# Module-specific logger
+logger = logging.getLogger(__name__)
 
 
 class LLMClient(Protocol):
@@ -41,7 +43,7 @@ class GeminiLLMClient:
     Google's Gemini Flash 2.0 model for generating responses to user prompts.
 
     Attributes:
-        model_name: The name of the Gemini model to use.
+        vertex_model: The Pydantic-AI VertexAIModel instance.
         agent: The Pydantic-AI Agent with the configured model.
     """
 
@@ -50,25 +52,22 @@ class GeminiLLMClient:
         project_id: Optional[str] = None,
         location: str = "us-central1",
         model_name: str = "gemini-1.5-flash-001",
-    ):
+    ) -> None:
         """Initialize the Gemini LLM client with Pydantic-AI.
 
         Args:
             project_id: The Google Cloud project ID. If None, will try to detect from environment.
             location: The Google Cloud region where the model is deployed.
             model_name: The name of the Gemini model to use.
-        """
-        # Create a Pydantic-AI VertexAIModel and Agent
-        try:
-            # Create VertexAI model with the correct parameters
-            self.vertex_model = VertexAIModel(
-                model_name, project_id=project_id, region=location if location else "us-central1"
-            )
 
-            # Create an agent with the model
+        Raises:
+            Exception: If there is an error initializing the client.
+        """
+        try:
+            self.vertex_model = VertexAIModel(model_name, project_id=project_id, region=location)
             self.agent = Agent(self.vertex_model)
         except Exception as e:
-            print(f"Error initializing GeminiLLMClient: {str(e)}")
+            logger.error(f"Error initializing GeminiLLMClient: {e}")
             raise
 
     async def generate_text(self, prompt: str) -> str:
@@ -81,20 +80,13 @@ class GeminiLLMClient:
             The generated text response from Gemini.
         """
         try:
-            # Use the Pydantic-AI Agent's run method
             result = await self.agent.run(prompt)
-
-            # Extract the data from the AgentRunResult
-            if hasattr(result, "data"):
-                return result.data
-            else:
-                # In case the result structure changes in the future
-                return str(result)
-
+            # More robust attribute access with getattr and default
+            return getattr(result, "data", str(result))
         except Exception as e:
-            error_msg = f"Error generating text with Gemini via Pydantic-AI: {str(e)}"
-            print(error_msg)
-            return f"Error generating response: {str(e)}"
+            error_msg = f"Error generating text with Gemini via Pydantic-AI: {e}"
+            logger.error(error_msg)
+            return f"Error generating response: {e}"
 
 
 @dataclass
@@ -106,14 +98,14 @@ class GeminiDependencies:
     development, or production environments.
 
     Attributes:
-        llm_client: The LLM client to use for text generation.
         project_id: The Google Cloud project ID for the Gemini client.
+        llm_client: The LLM client to use for text generation.
     """
 
     project_id: Optional[str] = None
     llm_client: Optional[LLMClient] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize default dependencies if not provided.
 
         This method is automatically called after initialization to

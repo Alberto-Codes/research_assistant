@@ -58,6 +58,25 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Updates
 
+- **Centralized Logging System**: Implemented a comprehensive logging infrastructure:
+  - Created a central logging configuration module to standardize logging across the application
+  - Added command-line options for controlling log levels and output destinations
+  - Replaced print statements with structured logging
+  - Improved error handling with detailed log messages
+  - Configurable log file output for persistent logging
+- **Code Refactoring**: Made the codebase more DRY, Pythonic, and maintainable:
+  - Enhanced type hints throughout for better static analysis
+  - Simplified error handling with more concise patterns
+  - Improved attribute access with Pythonic patterns
+  - Removed redundant comments and clarified documentation
+  - Made API interfaces more consistent across modules
+- **Dedicated CLI Interface**: Implemented a proper command-line interface structure:
+  - Created `commands.py` in the `cli` package for handling CLI commands
+  - Added command-line entry point for the Gemini model interaction
+  - Implemented structured argument parsing with help documentation
+  - Integrated with the logging system for consistent output
+  - Simplified the user experience with clear command structure
+
 ### Integrations
 
 - **Vertex AI Integration**: Added support for Google Vertex AI through Pydantic-AI's VertexAIModel, providing a reliable and efficient way to call Google's Gemini models.
@@ -82,12 +101,14 @@ The application follows this execution path:
 1. Entry point (`cli_entry`) is called through the command-line
 2. Command parsing and setup is handled in `commands.py`
 3. The service layer (`services.py`) is called to run the graph
-4. The graph executes through a series of nodes:
-   - `HelloNode` generates "Hello" text
-   - `WorldNode` generates "World" text
-   - `CombineNode` combines the texts
-   - `PrintNode` outputs the result
+4. The graph executes through nodes and returns results
 5. Results are displayed with detailed timing information
+
+For the Gemini CLI interface, the flow is:
+1. User runs `research_agent gemini --prompt "Your question here"`
+2. The `commands.py` module parses arguments and configures logging
+3. The service layer is called to generate an AI response
+4. The response and timing information are displayed to the user
 
 For the Gemini Chat interface, the flow is:
 1. Entry point (`cli_entry --app gemini`) launches the Streamlit interface
@@ -139,13 +160,24 @@ If you're interested in trying the Research Agent:
    ```
    This opens a chat interface where you can have conversations with the Gemini model.
 
-3. **For developers**: Check out the README.md file for detailed setup instructions.
+3. **To use the Gemini CLI command**:
+   ```
+   research_agent gemini --prompt "Your question here"
+   ```
+   This directly sends a single prompt to the Gemini model and displays the response in the terminal.
+   
+   Additional options:
+   ```
+   research_agent gemini --prompt "Your question" --log-level DEBUG --project-id your-project-id
+   ```
 
-4. **Quick test**: To verify the installation, run the command-line tool:
+4. **For developers**: Check out the README.md file for detailed setup instructions.
+
+5. **Quick test**: To verify the installation, run the command-line tool:
    ```
-   research_agent
+   research_agent gemini --prompt "Hello, what can you do?"
    ```
-   This should produce a "Hello World!" output with detailed execution information.
+   This should produce a detailed response from the Gemini model.
 
 ## How You Can Help
 

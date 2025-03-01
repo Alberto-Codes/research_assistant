@@ -45,6 +45,7 @@ src/
 │   ├── core/                # Core business logic
 │   │   ├── dependencies.py  # Dependency injection definitions
 │   │   ├── graph.py         # Graph definition
+│   │   ├── logging_config.py # Centralized logging configuration
 │   │   ├── nodes.py         # Node definitions
 │   │   └── state.py         # State class definition
 │   ├── api/                 # API layer
@@ -137,7 +138,170 @@ All code must meet the following standards:
 4. **Error Handling**:
    - Use appropriate exception types
    - Catch exceptions at the right level
-   - Log relevant information
+   - Log relevant information using the structured logging system
+
+## Logging Guidelines
+
+The Research Agent project uses a centralized logging system for consistent log management across all modules.
+
+### Logging Setup
+
+The project has a centralized logging configuration in `src/research_agent/core/logging_config.py` that:
+- Sets up consistent log formatting
+- Configures handlers (console and optional file output)
+- Provides runtime configuration via command-line parameters
+
+### Using Logging in Your Code
+
+1. **Get a module-specific logger**:
+   ```python
+   import logging
+   
+   # At the module level (outside of any class or function)
+   logger = logging.getLogger(__name__)
+   ```
+
+2. **Use appropriate log levels**:
+   - `logger.debug()` - Detailed debugging information
+   - `logger.info()` - Confirmation of normal operation
+   - `logger.warning()` - Something unexpected but not an error
+   - `logger.error()` - An error occurred but execution continues
+   - `logger.critical()` - A critical error that may prevent further execution
+
+3. **Follow these best practices**:
+   - Use structured logging with format parameters instead of string concatenation:
+     ```python
+     # Good
+     logger.info("Processing item %s with status %s", item_id, status)
+     
+     # Avoid
+     logger.info(f"Processing item {item_id} with status {status}")
+     ```
+   - Include contextual information that will help with debugging
+   - Log at the beginning and end of important operations
+   - Include timing information for performance-sensitive operations
+
+4. **Error handling with logging**:
+   ```python
+   try:
+       result = perform_operation()
+   except Exception as e:
+       logger.error("Operation failed: %s", e, exc_info=True)
+       # Handle the error appropriately
+   ```
+
+5. **Don't use print statements**:
+   - Always use the logging system instead of print statements
+   - This ensures all output follows the same format and filtering rules
+
+### Command-line Options
+
+The logging system supports the following command-line options:
+- `--log-level`: Sets the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `--log-file`: Specifies a file to write logs to (in addition to console output)
+
+Example:
+```bash
+python -m research_agent.cli.commands hello --log-level DEBUG --log-file logs/app.log
+```
+
+## Command-line Interface
+
+The Research Agent project uses a structured command-line interface (CLI) based on Python's `argparse` library, implemented in the `commands.py` module.
+
+### CLI Structure
+
+The CLI is organized with a main entry point that accepts subcommands:
+
+```
+research_agent <command> [options]
+```
+
+Current commands:
+- `gemini`: Interact with the Gemini AI model
+
+Each command has its own set of arguments and options, with consistent logging options across all commands.
+
+### Command Implementation
+
+The CLI implementation follows these patterns:
+
+1. **Command parser creation**: The `create_parser()` function creates and configures the argument parser.
+2. **Command handlers**: Each command has its own async handler function (e.g., `gemini_command()`).
+3. **Main entry point**: The `cli_entry()` function serves as the main entry point registered in `setup.py`.
+4. **Logging configuration**: Each command automatically configures logging based on command-line args.
+
+### Adding a New Command
+
+To add a new command to the CLI:
+
+1. Update the `create_parser()` function to add your new subcommand:
+   ```python
+   def create_parser() -> argparse.ArgumentParser:
+       # ... existing code ...
+       
+       # Add your new command
+       new_command_parser = subparsers.add_parser(
+           "new_command", help="Description of your new command"
+       )
+       new_command_parser.add_argument(
+           "--option", 
+           type=str, 
+           help="Description of the option"
+       )
+       
+       # Add logging arguments
+       add_logging_args(new_command_parser)
+       
+       return parser
+   ```
+
+2. Create a handler function for your command:
+   ```python
+   async def new_command(args: argparse.Namespace) -> None:
+       """
+       Implementation for the new command.
+       
+       Args:
+           args: Command-line arguments.
+       """
+       logger = logging.getLogger(__name__)
+       logger.info("Running new command")
+       
+       # Command implementation
+       try:
+           # Your code here
+           pass
+       except Exception as e:
+           logger.error("Error running new command: %s", e)
+           print(f"Error: {e}")
+           sys.exit(1)
+   ```
+
+3. Update the `main_async()` function to handle your new command:
+   ```python
+   async def main_async(args: Optional[List[str]] = None) -> None:
+       # ... existing code ...
+       
+       # Run the appropriate command
+       if parsed_args.command == "gemini":
+           await gemini_command(parsed_args)
+       elif parsed_args.command == "new_command":
+           await new_command(parsed_args)
+       else:
+           parser.print_help()
+   ```
+
+4. Add tests for your new command in the `tests/` directory.
+
+### CLI Best Practices
+
+- Provide helpful descriptions for all commands and options
+- Use consistent naming conventions for options
+- Include `--help` output that clearly explains each option
+- Follow the established pattern of error handling and logging
+- Make command implementations async to support concurrent operations
+- Keep command handlers focused and delegate complex logic to service functions
 
 ## Adding New Components
 

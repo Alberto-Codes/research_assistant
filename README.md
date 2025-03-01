@@ -33,22 +33,31 @@ This project implements an AI agent using Pydantic Graph and integrates with Goo
 
 The project provides a command-line interface for running the AI agent:
 
-#### Hello World Example
-
 ```
-python -m research_agent.cli.commands hello [--prefix PREFIX] [--use-custom-llm]
-```
-
-#### Gemini AI Agent
-
-```
-python -m research_agent.cli.commands gemini --prompt "Your question here" [--project-id PROJECT_ID] [--use-mock-gemini]
+research_agent gemini --prompt "Your question here" [--project-id PROJECT_ID] [--log-level LEVEL] [--log-file PATH]
 ```
 
 Options:
 - `--prompt`: The prompt to send to the Gemini model (required)
 - `--project-id`: Google Cloud project ID (optional)
-- `--use-mock-gemini`: Use the mock Gemini client for local testing without authentication
+- `--log-level`: Set logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL) (default: INFO)
+- `--log-file`: Specify a file to save logs (optional)
+
+Examples:
+
+```bash
+# Basic usage
+research_agent gemini --prompt "What is machine learning?"
+
+# With debug logging
+research_agent gemini --prompt "Explain neural networks" --log-level DEBUG
+
+# Saving logs to a file
+research_agent gemini --prompt "How does reinforcement learning work?" --log-file logs/gemini.log
+
+# Specifying a project ID
+research_agent gemini --prompt "Explain transformer architecture" --project-id your-project-id
+```
 
 ### Gemini Chat UI
 
@@ -56,6 +65,12 @@ For an interactive chat experience with Gemini models, you can use the Streamlit
 
 ```
 streamlit run src/research_agent/ui/streamlit/gemini_chat.py
+```
+
+Or use the provided command-line entry point:
+
+```
+python -m research_agent.ui.cli_entry --app gemini
 ```
 
 This opens a web interface where you can:
@@ -133,6 +148,7 @@ src/
 │   ├── core/                # Core business logic
 │   │   ├── dependencies.py  # Dependency injection definitions
 │   │   ├── graph.py         # Graph definition
+│   │   ├── logging_config.py # Centralized logging configuration
 │   │   ├── nodes.py         # Node definitions
 │   │   └── state.py         # State class definition
 │   ├── api/                 # API layer
@@ -182,8 +198,26 @@ This project follows consistent error handling practices:
 
 1. All functions have clear type annotations and docstrings
 2. Exceptions are caught at appropriate levels and contextualized
-3. Logging is used for debugging and tracing
+3. Structured logging is used for debugging and tracing with configurable levels
 4. Custom exceptions are used for domain-specific errors
+
+#### Logging Configuration
+
+The application uses a centralized logging system that can be configured via command line:
+
+```bash
+# Run with debug level logging
+python -m research_agent.cli.commands hello --log-level DEBUG
+
+# Save logs to a file
+python -m research_agent.cli.commands hello --log-file logs/app.log
+```
+
+Logging features include:
+- Configurable log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- Console and/or file output
+- Structured format with timestamps, levels, and module names
+- Module-specific loggers for targeted debugging
 
 ## Overview
 

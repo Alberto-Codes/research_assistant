@@ -13,11 +13,11 @@ import subprocess
 import sys
 from typing import List, Optional
 
+# Import local modules
+from research_agent.core.logging_config import configure_logging
+
 # Import third-party libraries
 # No third-party imports directly in main.py
-
-# Import local modules
-# Will be imported in functions to avoid circular imports
 
 
 def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
@@ -56,6 +56,10 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             help="Prefix to add to LLM responses",
         )
 
+        # Add logging arguments to both parsers
+        for p in [cli_parser]:
+            add_logging_arguments(p)
+
         # Streamlit interface
         streamlit_parser = subparsers.add_parser(
             "ui",
@@ -67,6 +71,9 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             default=8501,
             help="Port to run the Streamlit UI on",
         )
+
+        # Add logging arguments
+        add_logging_arguments(streamlit_parser)
     else:
         # Old-style command-line arguments (for backward compatibility)
         parser.add_argument(
@@ -83,7 +90,31 @@ def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
             help=argparse.SUPPRESS,
         )
 
+        # Add logging arguments
+        add_logging_arguments(parser)
+
     return parser.parse_args(args)
+
+
+def add_logging_arguments(parser):
+    """Add logging-related command-line arguments to a parser.
+
+    Args:
+        parser: The argparse parser or subparser to add arguments to.
+    """
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=str,
+        default=None,
+        help="Optional log file path",
+    )
 
 
 def run_cli(args: argparse.Namespace) -> None:
@@ -147,6 +178,9 @@ def run_streamlit(args: argparse.Namespace) -> None:
 def main() -> None:
     """Main entry point for the application."""
     args = parse_args()
+
+    # Configure logging based on command-line arguments
+    configure_logging(log_level=args.log_level, log_file=args.log_file)
 
     if args.interface == "cli":
         run_cli(args)

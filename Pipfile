@@ -7,8 +7,9 @@ name = "pypi"
 pydantic-ai = "*"
 pydantic-graph = "*"
 streamlit = "*"
-research_agent = {file = ".", editable = true}
 nest-asyncio = "*"
+research_agent = {file = ".", editable = true}
+
 
 [dev-packages]
 black = "*"
