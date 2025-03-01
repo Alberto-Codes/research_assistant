@@ -1,5 +1,5 @@
 """
-Dependencies for the Research Agent graph.
+Dependencies for the Gemini graph in the Research Agent.
 
 This module defines the dependencies that can be injected into nodes,
 including the LLMClient protocol and its implementations using the
@@ -40,7 +40,7 @@ class GeminiLLMClient:
     """A client for Google Vertex AI's Gemini model using Pydantic-AI.
 
     This implementation uses Pydantic-AI's VertexAIModel to connect to
-    Google's Gemini Flash 2.0 model for generating responses to user prompts.
+    Google's Gemini Flash model for generating responses to user prompts.
 
     Attributes:
         vertex_model: The Pydantic-AI VertexAIModel instance.
@@ -63,9 +63,29 @@ class GeminiLLMClient:
         Raises:
             Exception: If there is an error initializing the client.
         """
+        self.project_id = project_id
+        self.location = location
+        self.model_name = model_name
+        self.vertex_model = None
+        self.agent = None
+
+        # Log the configuration
+        logger.info(
+            "Initializing GeminiLLMClient with project_id=%s, location=%s, model=%s",
+            project_id or "(auto-detect)",
+            location,
+            model_name,
+        )
+
         try:
-            self.vertex_model = VertexAIModel(model_name, project_id=project_id, region=location)
+            # Initialize the model and agent at creation time
+            self.vertex_model = VertexAIModel(
+                model_name=model_name, 
+                project_id=project_id, 
+                region=location
+            )
             self.agent = Agent(self.vertex_model)
+            logger.info("Successfully initialized Gemini model and agent")
         except Exception as e:
             logger.error(f"Error initializing GeminiLLMClient: {e}")
             raise
@@ -74,13 +94,15 @@ class GeminiLLMClient:
         """Generate text using Gemini model based on a prompt.
 
         Args:
-            prompt: The text prompt to generate from.
+            prompt: The prompt to send to the model.
 
         Returns:
             The generated text response from Gemini.
         """
         try:
+            # Generate a response using the pre-initialized agent
             result = await self.agent.run(prompt)
+            
             # More robust attribute access with getattr and default
             return getattr(result, "data", str(result))
         except Exception as e:
@@ -91,7 +113,7 @@ class GeminiLLMClient:
 
 @dataclass
 class GeminiDependencies:
-    """Container for all dependencies needed by the Research Agent graph nodes.
+    """Container for all dependencies needed by the Gemini Agent graph nodes.
 
     This class centralizes all external dependencies required by the graph,
     making it easier to provide different implementations for testing,
@@ -112,4 +134,4 @@ class GeminiDependencies:
         set up default dependencies based on the configuration.
         """
         if self.llm_client is None:
-            self.llm_client = GeminiLLMClient(project_id=self.project_id)
+            self.llm_client = GeminiLLMClient(project_id=self.project_id) 

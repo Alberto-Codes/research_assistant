@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from research_agent.api.services import generate_ai_response
-from research_agent.core.state import MyState
+from research_agent.core.gemini.state import GeminiState
 
 
 def add_gemini_command(subparsers: "argparse._SubParsersAction") -> None:

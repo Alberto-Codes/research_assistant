@@ -16,11 +16,9 @@ from typing import Any, Callable, Dict, List, Optional, TypeVar, cast
 # Import what's available from pydantic_graph
 from pydantic_graph import BaseNode, End, GraphRunContext
 
-from research_agent.core.chroma_dependencies import ChromaDBDependencies
-from research_agent.core.doc_state import DocumentState
-
-# Import from existing code
-from research_agent.core.nodes import NodeError, _measure_execution_time
+from research_agent.core.document.dependencies import ChromaDBDependencies
+from research_agent.core.document.state import DocumentState
+from research_agent.core.gemini.nodes import NodeError, _measure_execution_time
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -28,7 +26,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ChromaDBIngestionNode(BaseNode[DocumentState, ChromaDBDependencies, Dict[str, Any]]):
-    """Node that ingests documents into a ChromaDB collection.
+    """
+    Node that ingests documents into a ChromaDB collection.
 
     This node takes a list of documents from the state and adds them to a
     ChromaDB collection using the provided ChromaDB client.
@@ -37,7 +36,8 @@ class ChromaDBIngestionNode(BaseNode[DocumentState, ChromaDBDependencies, Dict[s
     _log_prefix = "Document Ingestion"
 
     def _get_output_text(self, ctx):
-        """Get the text to display in logs.
+        """
+        Get the text to display in logs.
 
         Args:
             ctx: The graph run context.
@@ -51,7 +51,8 @@ class ChromaDBIngestionNode(BaseNode[DocumentState, ChromaDBDependencies, Dict[s
 
     @_measure_execution_time
     async def run(self, ctx: GraphRunContext) -> End[Dict[str, Any]]:
-        """Ingest documents into ChromaDB.
+        """
+        Ingest documents into ChromaDB.
 
         Args:
             ctx: The graph run context containing state and dependencies.
@@ -105,4 +106,4 @@ class ChromaDBIngestionNode(BaseNode[DocumentState, ChromaDBDependencies, Dict[s
             logger.error(error_message)
             result = {"error": error_message}
             ctx.state.ingestion_results = result
-            return End(result)
+            return End(result) 

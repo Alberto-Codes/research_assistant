@@ -1,5 +1,5 @@
 """
-Graph definition for the Research Agent.
+Graph definition for the Gemini chat functionality in the Research Agent.
 
 This module defines the graph structure for the Research Agent application,
 focusing on the Gemini chat functionality.
@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Try to import from pydantic_graph with a fallback for GraphError
 try:
@@ -25,9 +25,9 @@ except ImportError:
         pass
 
 
-from research_agent.core.dependencies import GeminiDependencies
-from research_agent.core.nodes import GeminiAgentNode
-from research_agent.core.state import MyState
+from research_agent.core.gemini.dependencies import GeminiDependencies
+from research_agent.core.gemini.nodes import GeminiAgentNode
+from research_agent.core.gemini.state import GeminiState
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def get_gemini_agent_graph() -> Graph:
 
 async def run_gemini_agent_graph(
     user_prompt: str, dependencies: Optional[GeminiDependencies] = None
-) -> Tuple[str, MyState, List[Any]]:
+) -> Tuple[str, GeminiState, List[Any]]:
     """
     Run the Gemini agent graph with a user prompt.
 
@@ -66,7 +66,7 @@ async def run_gemini_agent_graph(
         A tuple containing the result string, the final state, and any errors.
     """
     # Create a state with the user prompt
-    state = MyState(user_prompt=user_prompt)
+    state = GeminiState(user_prompt=user_prompt)
 
     # Create dependencies if not provided
     if dependencies is None:
@@ -103,7 +103,7 @@ async def run_gemini_agent_graph(
     return result_text, final_state, errors
 
 
-def display_results(graph_result: GraphRunResult) -> None:
+def display_results(graph_result: Union[GraphRunResult, Any], verbose: bool = False) -> None:
     """
     Display the results of a graph execution.
 
@@ -112,21 +112,62 @@ def display_results(graph_result: GraphRunResult) -> None:
 
     Args:
         graph_result: The result of running a graph.
+        verbose: Whether to display verbose information.
     """
+    # If it's not a GraphRunResult, just print it and return
+    if not isinstance(graph_result, GraphRunResult):
+        print(graph_result)
+        return
+        
+    # Import DocumentState here to avoid circular imports
+    from research_agent.core.document.state import DocumentState
+
     # Get the output and state from the result
     output = graph_result.output
     state = graph_result.state
 
-    # Print the result and state details
-    print(f"\nResult: {output}")
-    print(f"State: {state}")
+    # Handle different state types with appropriate display
+    if isinstance(state, GeminiState):
+        print(f"\nResult: {output}")
+        
+        if verbose:
+            print(f"\nState: {state}")
+            
+            if graph_result.errors:
+                print("\nErrors:")
+                for error in graph_result.errors:
+                    print(f"  - {error}")
+                    
+    elif isinstance(state, DocumentState):
+        print(f"\nIngested {len(output.get('document_ids', []))} documents:")
+        
+        for idx, doc_id in enumerate(output.get("document_ids", [])):
+            print(f"  - Document {idx+1}: {doc_id}")
+            
+        if verbose:
+            print(f"\nState: {state}")
+            
+            if graph_result.errors:
+                print("\nErrors:")
+                for error in graph_result.errors:
+                    print(f"  - {error}")
+    else:
+        print(f"\nResult: {output}")
+        
+        if verbose:
+            print(f"\nState: {state}")
+            
+            if graph_result.errors:
+                print("\nErrors:")
+                for error in graph_result.errors:
+                    print(f"  - {error}")
 
     # Print execution history if available
-    if hasattr(state, "node_execution_history"):
+    if hasattr(state, "node_execution_history") and verbose:
         print("\nExecution History:")
         for entry in state.node_execution_history:
             print(f"  {entry}")
 
     # Print timing information if available
     if hasattr(state, "total_time"):
-        print(f"\nTotal execution time: {state.total_time:.3f} seconds")
+        print(f"\nTotal execution time: {state.total_time:.3f} seconds") 

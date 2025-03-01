@@ -1,4 +1,4 @@
-"""
+﻿"""
 Core components of the Research Agent application.
 
 This package contains the core components of the Research Agent application,
@@ -45,4 +45,5 @@ __all__ = [
     "run_document_ingestion_graph",
     # Legacy components
     "configure_logging",
-] 
+]
+

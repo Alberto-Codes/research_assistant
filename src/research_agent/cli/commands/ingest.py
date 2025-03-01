@@ -10,7 +10,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-from research_agent.core.doc_graph import (
+from research_agent.core.document.graph import (
     load_documents_from_directory,
     run_document_ingestion_graph,
 )

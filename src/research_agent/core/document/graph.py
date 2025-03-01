@@ -25,13 +25,46 @@ except ImportError:
         pass
 
 
-from research_agent.core.chroma_dependencies import ChromaDBDependencies
-from research_agent.core.doc_nodes import ChromaDBIngestionNode
-from research_agent.core.doc_state import DocumentState
-from research_agent.core.graph import display_results
+from research_agent.core.document.dependencies import ChromaDBDependencies
+from research_agent.core.document.nodes import ChromaDBIngestionNode
+from research_agent.core.document.state import DocumentState
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+
+async def ingest_documents(
+    documents: List[str],
+    collection_name: str = "default_collection",
+    document_ids: Optional[List[str]] = None,
+    metadata: Optional[List[Dict[str, Any]]] = None,
+    persist_directory: str = "./chroma_db",
+    dependencies: Optional[ChromaDBDependencies] = None,
+) -> Tuple[Dict[str, Any], DocumentState, List[Any]]:
+    """
+    Ingest documents into the research agent.
+
+    This is a convenience function that calls run_document_ingestion_graph.
+
+    Args:
+        documents: List of document contents to ingest.
+        collection_name: Name of the collection to store documents in.
+        document_ids: Optional list of document IDs.
+        metadata: Optional list of metadata dictionaries.
+        persist_directory: Directory to persist ChromaDB.
+        dependencies: Optional dependencies to inject into the graph.
+
+    Returns:
+        A tuple containing the result dictionary, the final state, and any errors.
+    """
+    return await run_document_ingestion_graph(
+        documents,
+        collection_name,
+        document_ids,
+        metadata,
+        persist_directory,
+        dependencies,
+    )
 
 
 def get_document_ingestion_graph() -> Graph:
@@ -64,16 +97,16 @@ async def run_document_ingestion_graph(
     and runs it to ingest the documents into ChromaDB.
 
     Args:
-        documents: List of document content strings to be ingested.
-        collection_name: Name of the ChromaDB collection to use.
+        documents: The list of document contents to ingest.
+        collection_name: The name of the ChromaDB collection to use.
         document_ids: Optional list of IDs for the documents.
         metadata: Optional list of metadata dictionaries for the documents.
-        persist_directory: Directory where ChromaDB data should be persisted.
+        persist_directory: The directory where ChromaDB will persist data.
         dependencies: Optional dependencies to inject into the graph.
             If None, default dependencies will be created.
 
     Returns:
-        A tuple containing the result dictionary, the final state, and any errors.
+        A tuple containing the ingestion result dictionary, the final state, and any errors.
     """
     # Create a state with the documents
     state = DocumentState(
@@ -97,7 +130,7 @@ async def run_document_ingestion_graph(
     # Run the graph
     try:
         result = await graph.run(ChromaDBIngestionNode(), state=state, deps=dependencies)
-        result_data = result.output
+        result_dict = result.output
         final_state = result.state
         errors = []
 
@@ -106,7 +139,7 @@ async def run_document_ingestion_graph(
         logger.error("Document ingestion graph failed: %s", str(e))
 
         # Return error information
-        result_data = {"error": str(e)}
+        result_dict = {"error": str(e)}
         final_state = state
         errors = [str(e)]
 
@@ -115,7 +148,7 @@ async def run_document_ingestion_graph(
     execution_time = (end_time - start_time).total_seconds()
     logger.info("Document ingestion graph completed in %.3f seconds", execution_time)
 
-    return result_data, final_state, errors
+    return result_dict, final_state, errors
 
 
 def load_documents_from_directory(directory_path: str) -> List[Dict[str, Any]]:
@@ -173,4 +206,5 @@ def load_documents_from_directory(directory_path: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error listing files in directory '{directory_path}': {e}")
 
-    return documents
+    logger.info("Loaded %d documents from %s", len(documents), directory_path)
+    return documents 

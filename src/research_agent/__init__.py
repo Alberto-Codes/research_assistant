@@ -2,24 +2,31 @@
 Research Agent Pydantic Graph implementation.
 """
 
-from research_agent.core.dependencies import (
+# Import dependencies
+from research_agent.core.gemini.dependencies import (
     GeminiDependencies,
     GeminiLLMClient,
     LLMClient,
 )
-from research_agent.core.graph import (
+
+# Import graph functions
+from research_agent.core.gemini.graph import (
     display_results,
     get_gemini_agent_graph,
     run_gemini_agent_graph,
 )
-from research_agent.core.nodes import GeminiAgentNode
-from research_agent.core.state import MyState
+
+# Import nodes
+from research_agent.core.gemini.nodes import GeminiAgentNode
+
+# Import state classes
+from research_agent.core.gemini.state import GeminiState
 
 __all__ = [
     # Nodes
     "GeminiAgentNode",
     # State
-    "MyState",
+    "GeminiState",
     # Graph
     "get_gemini_agent_graph",
     "run_gemini_agent_graph",
@@ -28,4 +35,4 @@ __all__ = [
     "GeminiDependencies",
     "LLMClient",
     "GeminiLLMClient",
-]
+] 
