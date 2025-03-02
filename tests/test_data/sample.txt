@@ -1,0 +1,34 @@
+Sample Document for Docling Testing
+
+This is a simple text file that we can use to test the Docling processor.
+
+# Section 1: Introduction
+
+Docling is a document processing library that can handle various document formats including:
+- PDF
+- DOCX
+- XLSX
+- HTML
+- Images
+
+# Section 2: Features
+
+The main features of Docling include:
+1. Advanced PDF understanding
+2. Table extraction
+3. Image classification
+4. OCR capabilities
+5. Consistent document representation
+
+# Section 3: Testing
+
+This document is being used to test the DoclingProcessor implementation for the Research Agent project.
+We're creating a basic document structure to verify that our processor can handle text files correctly.
+
+The implementation should:
+- Process this document
+- Extract the text content
+- Maintain structure where possible
+- Generate appropriate metadata
+
+END OF DOCUMENT 

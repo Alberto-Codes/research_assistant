@@ -10,6 +10,7 @@ streamlit = "*"
 nest-asyncio = "*"
 chromadb = "*"
 research-agent = {file = ".", editable = true}
+docling = "*"
 
 [dev-packages]
 black = "*"
