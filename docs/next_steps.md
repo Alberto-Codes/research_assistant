@@ -54,16 +54,17 @@
    - Address the deprecation warnings related to test functions returning non-None values
 3. Update main entry points to include the RAG UI page in navigation
 4. Add comprehensive user documentation for RAG functionality
-5. **Integrate Docling for Enhanced Document Processing**:
-   - Add Docling library integration for advanced document understanding
-   - Expand supported document formats beyond text files to include PDF, DOCX, XLSX, HTML, and images
-   - Leverage DoclingDocument's unified representation for more effective ChromaDB ingestion
-   - Implement document structure understanding for better context retrieval
-   - Extract metadata from documents to enhance search capabilities
-   - Integrate OCR functionality for processing scanned documents and images
-   - Create adapters to transform DoclingDocument objects to ChromaDB-compatible format
-   - Update the document ingestion UI to support and preview various file formats
-   - Add configuration options for document processing settings
+5. ✅ **Integrate Docling for Enhanced Document Processing**:
+   - ✅ Add Docling library integration for advanced document understanding
+   - ✅ Create DoclingProcessor service for handling multiple document formats
+   - ✅ Implement document structure understanding for better context retrieval
+   - ✅ Add comprehensive test suite for document processing
+   - ✅ Implement proper mocking for tests without requiring Docling installation
+   - ✅ Convert tests to pytest style for better integration with testing infrastructure
+   - ❌ Update document ingestion UI to support and preview various file formats
+   - ❌ Update the document ingestion pipeline to use DoclingProcessor
+   - ❌ Create adapters to transform DoclingDocument objects to ChromaDB-compatible format
+   - ❌ Integrate OCR functionality for processing scanned documents and images
 
 ## Docling Integration Plan
 
@@ -81,9 +82,9 @@ The current document processing pipeline has limited format support and lacks ad
 
 ### Detailed Implementation Approach
 
-1. **Core Integration**:
-   - Add Docling as a dependency to the project (`docling>=2.25.0`)
-   - Create a `DoclingProcessor` service in the core module:
+1. **Core Integration**: ✅ COMPLETED
+   - ✅ Add Docling as a dependency to the project (`docling>=2.25.0`)
+   - ✅ Created a `DoclingProcessor` service in the core module:
      ```python
      # src/research_agent/core/document_processing/docling_processor.py
      from dataclasses import dataclass
@@ -120,7 +121,7 @@ The current document processing pipeline has limited format support and lacks ad
              return result.document
      ```
 
-2. **ChromaDB Adapter**:
+2. **ChromaDB Adapter**: ❌ NOT STARTED
    - Develop adapters to convert DoclingDocument objects to ChromaDB-compatible format:
      ```python
      # src/research_agent/core/document_processing/chromadb_adapter.py
@@ -176,7 +177,17 @@ The current document processing pipeline has limited format support and lacks ad
              return result
      ```
 
-3. **Update Document Ingestion Service**:
+3. **✅ Testing Implementation**: COMPLETED
+   - ✅ Created unit tests for DoclingProcessor and options classes
+   - ✅ Implemented integration tests that use mock Docling functions
+   - ✅ Converted all tests to pytest-style for better integration with existing infrastructure
+   - ✅ Added test data for document processing tests
+   - ✅ Ensured tests run successfully with the existing test scripts:
+     - `run_tests.ps1`: For running unit and integration tests
+     - `run_cli.ps1`: For testing CLI functionality 
+     - `run_ui.ps1`: For testing UI integration
+
+4. **Update Document Ingestion Service**: ❌ NOT STARTED
    - Modify the existing ingestion service to use Docling:
      ```python
      # Update in src/research_agent/services.py
@@ -203,7 +214,7 @@ The current document processing pipeline has limited format support and lacks ad
          # [Implementation details...]
      ```
 
-4. **RAG Enhancements**:
+5. **RAG Enhancements**: ❌ NOT STARTED
    - Modify the RetrieveNode to leverage document structure:
      ```python
      # Enhanced in src/research_agent/core/rag/nodes.py
@@ -226,7 +237,7 @@ The current document processing pipeline has limited format support and lacks ad
              # [Implementation details...]
      ```
 
-5. **UI Enhancements**:
+6. **UI Enhancements**:
    - Update the document ingestion UI to handle multiple file formats:
      ```python
      # src/research_agent/ui/streamlit/document_ingestion.py
@@ -243,7 +254,7 @@ The current document processing pipeline has limited format support and lacks ad
          # [Rest of implementation...]
      ```
 
-6. **Testing Strategy**:
+7. **Testing Strategy**:
    - Create unit tests for DoclingProcessor and adapter
    - Add integration tests for the complete pipeline
    - Update CLI tests to test Docling ingestion
@@ -254,41 +265,43 @@ The current document processing pipeline has limited format support and lacks ad
 
 ### Future Enhancements After Docling Integration
 
-1. **Document Preview Capabilities**:
+Now that the core `DoclingProcessor` and test suite have been implemented, the next priorities are:
+
+1. **Complete ChromaDB Integration**:
+   - Implement the `DoclingChromaDBAdapter` to convert processed documents to ChromaDB format
+   - Update the document ingestion pipeline to use the new processor
+   - Enhance metadata extraction for better document search and filtering
+   - Update the RAG system to make use of document structure information
+
+2. **Document Preview Capabilities**:
    - Implement document preview in the UI to visualize document structure
    - Display tables, figures, and document layout as they appear in the original
    - Add thumbnail generation for documents in collections
    - Create a side-by-side view of original document and extracted text
 
-2. **Enhanced Search and Filtering**:
+3. **Enhanced Search and Filtering**:
    - Implement faceted search based on document structure
    - Enable filtering by document type, section, table/figure content
    - Add semantic search within specific document sections
    - Integrate keyword highlighting in search results
 
-3. **Document Analytics Dashboard**:
+4. **Document Analytics Dashboard**:
    - Create visualizations of document collections
    - Provide insights on document types, content distribution
    - Generate word clouds and topic modeling from document collections
    - Track most frequently accessed documents and sections
 
-4. **Multimodal RAG Capabilities**:
+5. **Multimodal RAG Capabilities**:
    - Enhance RAG to utilize images and tables in document understanding
    - Implement visual question answering for figures and diagrams
    - Add table-specific reasoning for numerical data
    - Create specialized prompts for different document components
 
-5. **Advanced Document Processing**:
+6. **Advanced Document Processing**:
    - Implement chart and graph understanding for data visualization
    - Add language detection and translation capabilities
    - Create specialized extractors for domain-specific content (legal, scientific, etc.)
    - Develop custom document templates for common document types
-
-6. **Search Result Visualization**:
-   - Implement visual linking between query and document sections
-   - Show document thumbnails with highlighted regions of interest
-   - Create interactive document maps to explore content connections
-   - Develop citation trees to visualize information relationships
 
 These enhancements will transform the Research Agent into a comprehensive document intelligence platform capable of understanding and retrieving information from diverse document formats with high fidelity and context awareness.
 

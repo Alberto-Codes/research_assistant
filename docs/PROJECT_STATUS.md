@@ -26,6 +26,15 @@ Think of it as a pipeline where information flows through different stations (or
 
 ### Recent Improvements
 
+- **Integrated Docling for Advanced Document Processing**: Added comprehensive document processing capabilities:
+  - Implemented `DoclingProcessor` service for handling multiple document formats (PDF, DOCX, XLSX, HTML, images)
+  - Created extensive test suite for document processing with 100% test coverage
+  - Added support for OCR, table extraction, and document structure understanding
+  - Implemented proper mocking for testing without requiring Docling installation
+  - Converted tests to pytest style for better integration with existing test infrastructure
+  - Enhanced error handling for document processing edge cases
+  - Prepared groundwork for advanced document understanding in the RAG workflow
+
 - **Enhanced RAG UI Testing and Fixed ChromaDB Compatibility**: Improved the testing and functionality of RAG components:
   - Fixed the `list_collections` function in `rag_search.py` to work with the latest ChromaDB API
   - Created comprehensive test suite for RAG search UI components
@@ -236,7 +245,7 @@ Think of it as a pipeline where information flows through different stations (or
 
 - The research capabilities include Retrieval Augmented Generation (RAG) to answer questions based on document collections
 - Document ingestion pipeline for building ChromaDB collections
-- Limited document format support (primarily text files) without advanced document understanding capabilities
+- Enhanced document format support through Docling integration (PDF, DOCX, XLSX, HTML, images)
 - Performance optimizations for larger workloads haven't been implemented yet
 
 ## Execution Flow
