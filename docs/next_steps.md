@@ -79,29 +79,218 @@ The current document processing pipeline has limited format support and lacks ad
 6. **Enhanced Metadata**: Extract and utilize document metadata for better search and filtering
 7. **Structure-aware Processing**: Maintain document structure during chunking for more coherent retrieval
 
-### Implementation Approach
+### Detailed Implementation Approach
 
 1. **Core Integration**:
-   - Add Docling as a dependency to the project
-   - Create a DoclingProcessor service in the core module
-   - Implement document loading and parsing with Docling's APIs
+   - Add Docling as a dependency to the project (`docling>=2.25.0`)
+   - Create a `DoclingProcessor` service in the core module:
+     ```python
+     # src/research_agent/core/document_processing/docling_processor.py
+     from dataclasses import dataclass
+     from typing import List, Optional
+     from docling.document_converter import DocumentConverter
+     from docling.options import PipelineOptions
+     
+     @dataclass
+     class DoclingProcessorOptions:
+         """Configuration options for Docling processing."""
+         enable_ocr: bool = True
+         extract_tables: bool = True
+         extract_images: bool = True
+         language: Optional[str] = None
+         chunk_size: int = 1000
+         chunk_overlap: int = 200
+     
+     class DoclingProcessor:
+         """Processes documents using Docling."""
+         
+         def __init__(self, options: Optional[DoclingProcessorOptions] = None):
+             self.options = options or DoclingProcessorOptions()
+             self.converter = DocumentConverter()
+             
+         def process_file(self, file_path: str):
+             """Process a single file with Docling."""
+             pipeline_options = PipelineOptions(
+                 ocr_language=self.options.language,
+                 extract_tables=self.options.extract_tables,
+                 extract_images=self.options.extract_images,
+             )
+             
+             result = self.converter.convert(file_path, pipeline_options=pipeline_options)
+             return result.document
+     ```
 
 2. **ChromaDB Adapter**:
-   - Develop adapters to convert DoclingDocument objects to ChromaDB-compatible format
-   - Create intelligent chunking strategies that preserve document structure
-   - Extract and store metadata in ChromaDB for enhanced retrieval
+   - Develop adapters to convert DoclingDocument objects to ChromaDB-compatible format:
+     ```python
+     # src/research_agent/core/document_processing/chromadb_adapter.py
+     import hashlib
+     import os
+     from typing import List, Dict, Any, Tuple
+     from docling.document import DoclingDocument
+     from docling.document.chunking import chunk_document
+     
+     class DoclingChromaDBAdapter:
+         """Adapts DoclingDocument objects for ChromaDB ingestion."""
+         
+         def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+             self.chunk_size = chunk_size
+             self.chunk_overlap = chunk_overlap
+         
+         def document_to_chunks(self, document: DoclingDocument, source_path: str) -> List[Tuple[str, str, Dict[str, Any]]]:
+             """Convert a DoclingDocument to a list of chunks for ChromaDB."""
+             # Extract document metadata
+             metadata_base = {
+                 "source": source_path,
+                 "filename": os.path.basename(source_path),
+                 "format": os.path.splitext(source_path)[1][1:].lower(),
+                 "document_type": document.document_type,
+             }
+             
+             # Use Docling's chunking functionality
+             chunks = chunk_document(
+                 document, 
+                 chunk_size=self.chunk_size, 
+                 chunk_overlap=self.chunk_overlap
+             )
+             
+             # Convert chunks to ChromaDB format: (id, text, metadata)
+             result = []
+             for i, chunk in enumerate(chunks):
+                 # Create chunk-specific metadata
+                 metadata = {
+                     **metadata_base,
+                     "chunk_index": i,
+                     "page_numbers": chunk.source_pages,
+                     "section_title": chunk.section_title,
+                     "is_table": chunk.is_table,
+                     "is_figure": chunk.is_figure,
+                 }
+                 
+                 # Generate unique ID
+                 content = chunk.text + str(metadata)
+                 chunk_id = hashlib.md5(content.encode()).hexdigest()
+                 
+                 result.append((chunk_id, chunk.text, metadata))
+                 
+             return result
+     ```
 
-3. **UI Enhancements**:
-   - Update the document ingestion UI to handle and preview multiple file formats
-   - Add document processing configuration options
-   - Display document structure and metadata in the UI
+3. **Update Document Ingestion Service**:
+   - Modify the existing ingestion service to use Docling:
+     ```python
+     # Update in src/research_agent/services.py
+     async def ingest_documents_with_docling(
+         data_dir: str,
+         collection_name: str,
+         chroma_dir: str = "./chroma_db",
+         enable_ocr: bool = True,
+         chunk_size: int = 1000,
+         chunk_overlap: int = 200
+     ):
+         """Ingest documents from a directory using Docling and store in ChromaDB."""
+         # Initialize Docling processor
+         processor = DoclingProcessor(DoclingProcessorOptions(
+             enable_ocr=enable_ocr,
+             chunk_size=chunk_size,
+             chunk_overlap=chunk_overlap
+         ))
+         
+         # Initialize ChromaDB adapter
+         adapter = DoclingChromaDBAdapter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+         
+         # Process documents and add to ChromaDB
+         # [Implementation details...]
+     ```
 
 4. **RAG Enhancements**:
-   - Modify retrieval strategies to leverage document structure
-   - Enhance answer generation with structural context
-   - Improve source attribution with document metadata
+   - Modify the RetrieveNode to leverage document structure:
+     ```python
+     # Enhanced in src/research_agent/core/rag/nodes.py
+     @dataclass
+     class RetrieveNode(BaseNode[RAGState]):
+         """Node to retrieve relevant documents with structure awareness."""
+         
+         async def run(self, ctx: GraphRunContext[RAGState]):
+             # Query ChromaDB with structure awareness
+             # [Implementation details...]
+             
+             # Apply document re-ranking based on structure
+             reranked_docs = self._rerank_documents(retrieved_docs, ctx.state.query)
+             
+             # [Additional implementation...]
+             
+         def _rerank_documents(self, documents, query):
+             """Rerank documents based on structure and relevance."""
+             # Prioritize based on query content and document structure
+             # [Implementation details...]
+     ```
 
-This integration will transform the document processing capabilities of the Research Agent, enabling more sophisticated research workflows and better question answering based on structured documents.
+5. **UI Enhancements**:
+   - Update the document ingestion UI to handle multiple file formats:
+     ```python
+     # src/research_agent/ui/streamlit/document_ingestion.py
+     def render_document_ingestion_ui():
+         """Render the document ingestion UI with Docling support."""
+         # [UI implementation with file upload for multiple formats]
+         
+         uploaded_files = st.file_uploader(
+             "Upload documents", 
+             accept_multiple_files=True,
+             type=["pdf", "docx", "xlsx", "png", "jpg", "jpeg", "txt", "html"]
+         )
+         
+         # [Rest of implementation...]
+     ```
+
+6. **Testing Strategy**:
+   - Create unit tests for DoclingProcessor and adapter
+   - Add integration tests for the complete pipeline
+   - Update CLI tests to test Docling ingestion
+   - Ensure compatibility with existing test scripts:
+     - `run_tests.ps1`: For running unit and integration tests
+     - `run_cli.ps1`: For testing CLI functionality with Docling
+     - `run_ui.ps1`: For testing UI integration with Docling
+
+### Future Enhancements After Docling Integration
+
+1. **Document Preview Capabilities**:
+   - Implement document preview in the UI to visualize document structure
+   - Display tables, figures, and document layout as they appear in the original
+   - Add thumbnail generation for documents in collections
+   - Create a side-by-side view of original document and extracted text
+
+2. **Enhanced Search and Filtering**:
+   - Implement faceted search based on document structure
+   - Enable filtering by document type, section, table/figure content
+   - Add semantic search within specific document sections
+   - Integrate keyword highlighting in search results
+
+3. **Document Analytics Dashboard**:
+   - Create visualizations of document collections
+   - Provide insights on document types, content distribution
+   - Generate word clouds and topic modeling from document collections
+   - Track most frequently accessed documents and sections
+
+4. **Multimodal RAG Capabilities**:
+   - Enhance RAG to utilize images and tables in document understanding
+   - Implement visual question answering for figures and diagrams
+   - Add table-specific reasoning for numerical data
+   - Create specialized prompts for different document components
+
+5. **Advanced Document Processing**:
+   - Implement chart and graph understanding for data visualization
+   - Add language detection and translation capabilities
+   - Create specialized extractors for domain-specific content (legal, scientific, etc.)
+   - Develop custom document templates for common document types
+
+6. **Search Result Visualization**:
+   - Implement visual linking between query and document sections
+   - Show document thumbnails with highlighted regions of interest
+   - Create interactive document maps to explore content connections
+   - Develop citation trees to visualize information relationships
+
+These enhancements will transform the Research Agent into a comprehensive document intelligence platform capable of understanding and retrieving information from diverse document formats with high fidelity and context awareness.
 
 ## Test Suite Improvements
 
