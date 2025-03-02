@@ -36,6 +36,16 @@ Think of it as a pipeline where information flows through different stations (or
   - Enhanced error handling in all UI component tests
   - Addressed duplicate test methods causing interference
 
+- **Migrated Testing Framework from Unittest to Pytest**: Significantly improved the testing infrastructure:
+  - Converted all unittest classes to pytest-style standalone test functions
+  - Added proper pytest.mark.asyncio decorators for async test functions
+  - Fixed path handling for cross-platform compatibility using os.path.join()
+  - Improved mocking for external services and dependencies
+  - Added skip markers for example/template tests 
+  - Enhanced overall test organization and readability
+  - Eliminated coroutine warnings by properly handling async tests
+  - Improved test coverage through more maintainable test structure
+
 - **Enhanced RAG CLI Command Testing**: Significantly improved test coverage for the RAG command module:
   - Created comprehensive test suite for the RAG CLI command module
   - Implemented tests for command registration, argument parsing, and execution flow
@@ -226,6 +236,7 @@ Think of it as a pipeline where information flows through different stations (or
 
 - The research capabilities include Retrieval Augmented Generation (RAG) to answer questions based on document collections
 - Document ingestion pipeline for building ChromaDB collections
+- Limited document format support (primarily text files) without advanced document understanding capabilities
 - Performance optimizations for larger workloads haven't been implemented yet
 
 ## Execution Flow
@@ -268,6 +279,7 @@ For the Gemini Chat interface, the flow is:
 - Create tutorials to help users build their own research agents
 - Add support for different Gemini models (1.5-pro, 1.0-ultra, etc.)
 - Implement file upload capabilities for document analysis in the chat interface
+- Integrate Docling for advanced document processing and wider format support
 
 ### Long-term Vision
 

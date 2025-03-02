@@ -54,6 +54,54 @@
    - Address the deprecation warnings related to test functions returning non-None values
 3. Update main entry points to include the RAG UI page in navigation
 4. Add comprehensive user documentation for RAG functionality
+5. **Integrate Docling for Enhanced Document Processing**:
+   - Add Docling library integration for advanced document understanding
+   - Expand supported document formats beyond text files to include PDF, DOCX, XLSX, HTML, and images
+   - Leverage DoclingDocument's unified representation for more effective ChromaDB ingestion
+   - Implement document structure understanding for better context retrieval
+   - Extract metadata from documents to enhance search capabilities
+   - Integrate OCR functionality for processing scanned documents and images
+   - Create adapters to transform DoclingDocument objects to ChromaDB-compatible format
+   - Update the document ingestion UI to support and preview various file formats
+   - Add configuration options for document processing settings
+
+## Docling Integration Plan
+
+The current document processing pipeline has limited format support and lacks advanced document understanding capabilities. Integrating Docling (https://ds4sd.github.io/docling/) will significantly enhance these capabilities:
+
+### Benefits of Docling Integration
+
+1. **Multi-format Support**: Process PDF, DOCX, XLSX, HTML, images, and more file formats
+2. **Advanced PDF Understanding**: Extract page layout, reading order, tables, and structural elements
+3. **Unified Document Representation**: DoclingDocument provides a consistent format for all document types
+4. **Local Processing**: Run document processing locally for sensitive data and air-gapped environments
+5. **OCR Capabilities**: Process scanned documents and images with text extraction
+6. **Enhanced Metadata**: Extract and utilize document metadata for better search and filtering
+7. **Structure-aware Processing**: Maintain document structure during chunking for more coherent retrieval
+
+### Implementation Approach
+
+1. **Core Integration**:
+   - Add Docling as a dependency to the project
+   - Create a DoclingProcessor service in the core module
+   - Implement document loading and parsing with Docling's APIs
+
+2. **ChromaDB Adapter**:
+   - Develop adapters to convert DoclingDocument objects to ChromaDB-compatible format
+   - Create intelligent chunking strategies that preserve document structure
+   - Extract and store metadata in ChromaDB for enhanced retrieval
+
+3. **UI Enhancements**:
+   - Update the document ingestion UI to handle and preview multiple file formats
+   - Add document processing configuration options
+   - Display document structure and metadata in the UI
+
+4. **RAG Enhancements**:
+   - Modify retrieval strategies to leverage document structure
+   - Enhance answer generation with structural context
+   - Improve source attribution with document metadata
+
+This integration will transform the document processing capabilities of the Research Agent, enabling more sophisticated research workflows and better question answering based on structured documents.
 
 ## Test Suite Improvements
 
