@@ -184,38 +184,33 @@ To use the actual Vertex AI service:
 - `google-cloud-aiplatform`: For Vertex AI integration
 - `chromadb`: For document storage and vector database capabilities
 
-## Testing Approach
+## Testing
 
-This project follows best practices for testing, with a focus on keeping production code and test code separate:
+### Migration from Unittest to Pytest
 
-### Test-First Development
-- Unit tests for all components
-- Integration tests for workflows
-- Mock clients for external services (Vertex AI)
-- Streamlit UI tests using `streamlit.testing.v1.AppTest`
+The project has been migrated from unittest to pytest to enable better handling of async tests and to follow modern Python testing practices. Here are the key changes and solutions implemented:
 
-### Code Coverage
-- Comprehensive code coverage tracking using pytest-cov
-- PowerShell script (`run_tests.ps1`) at the project root for easy coverage testing
-- HTML report generation with browser integration
-- Current coverage is at 42% with plans for improvement
-- Customizable coverage settings via `.coveragerc`
-- Run coverage tests with `.\run_tests.ps1 coverage-report` to see detailed reports
+1. **Pytest-style Tests Structure**:
+   - Removed unittest classes (e.g., `TestRagSearch`) in favor of standalone test functions
+   - Added `pytest.mark.asyncio` decorators to async test functions
+   - Replaced `self.assert*` assertions with pytest's standard assertions
 
-### Mock Clients
-We've deprecated the practice of including mock implementations in production code. Instead:
-- All mock implementations are kept in test files
-- We use pytest fixtures for providing test doubles
-- Test against protocols rather than concrete implementations
+2. **Path Handling for Cross-platform Compatibility**:
+   - Used `os.path.join()` instead of hardcoded forward slashes to ensure tests work on all operating systems
+   - Fixed path handling in document ingestion tests to work properly on Windows
 
-### UI Testing
-For Streamlit UI testing, we use Streamlit's AppTest framework to test UI components without running a full browser:
-- Test the presence and configuration of UI elements
-- Simulate user interactions
-- Mock async streaming responses
-- Test UI state changes
+3. **Mocking External Services and Dependencies**:
+   - Used `@patch` decorators to mock dependencies
+   - Created proper mock implementations for async context managers and iterators
+   - Skipped tests that require real API authentication when appropriate
 
-For more details, see the [Testing Guide](TESTING.md).
+4. **Example/Template Tests**:
+   - Marked example tests in the template file with `@pytest.mark.skip` to avoid errors from non-existent modules
+
+5. **Test Runner**:
+   - Use `.\run_tests.ps1 coverage` to run the tests with coverage reporting
+
+Remember to properly mock external dependencies in tests and handle async functions correctly with `pytest.mark.asyncio` to ensure tests run consistently across different environments.
 
 ## Project Structure
 
