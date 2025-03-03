@@ -73,9 +73,9 @@ def _measure_execution_time(func: Callable[..., T]) -> Callable[..., T]:
         try:
             result = await func(self, ctx, *args, **kwargs)
 
-            # Ensure result is an End object if expected
-            if func.__name__ == "run" and not isinstance(result, End):
-                raise NodeError(f"Node {node_name} did not return an End object")
+            # Ensure result is an End object or another node type for graph flow
+            if func.__name__ == "run" and not isinstance(result, End) and not isinstance(result, BaseNode):
+                raise NodeError(f"Node {node_name} did not return an End object or another node")
 
             # Calculate execution time
             execution_time = time.time() - start_time

@@ -6,6 +6,7 @@ $TestName = "all"  # Default test to run
 $DebugMode = $false  # Debug mode flag
 $Collection = "test_collection"  # Default collection name
 $DataDir = "data"  # Default data directory
+$DeleteDB = $false  # Flag to delete existing DB before test
 
 # Check if arguments were provided
 if ($args.Count -gt 0) {
@@ -16,6 +17,9 @@ if ($args.Count -gt 0) {
 foreach ($arg in $args) {
     if ($arg -eq "-debug" -or $arg -eq "-d") {
         $DebugMode = $true
+    }
+    if ($arg -eq "-clean" -or $arg -eq "-c") {
+        $DeleteDB = $true
     }
 }
 
@@ -32,7 +36,21 @@ Write-Host "Test: $TestName" -ForegroundColor Yellow
 Write-Host "Log Level: $LogLevel" -ForegroundColor Yellow
 Write-Host "Collection: $Collection" -ForegroundColor Yellow
 Write-Host "Data Directory: $DataDir" -ForegroundColor Yellow
+Write-Host "Clean DB: $DeleteDB" -ForegroundColor Yellow
 Write-Host ""
+
+# Delete ChromaDB if flagged
+if ($DeleteDB) {
+    $ChromaDBPath = "./chroma_db"
+    if (Test-Path -Path $ChromaDBPath) {
+        Write-Host "Deleting existing ChromaDB at $ChromaDBPath" -ForegroundColor Yellow
+        Remove-Item -Path $ChromaDBPath -Recurse -Force
+        Write-Host "ChromaDB directory removed" -ForegroundColor Green
+    } else {
+        Write-Host "No existing ChromaDB found at $ChromaDBPath" -ForegroundColor Cyan
+    }
+    Write-Host ""
+}
 
 # Function to run a command and display the result
 function Run-Test {
@@ -77,16 +95,38 @@ function Run-Test {
     }
 }
 
-# Check if data directory exists
+# Check if data directory exists and analyze file types
 if (Test-Path -Path $DataDir) {
     Write-Host "Using existing data directory for ingestion tests: $DataDir" -ForegroundColor Cyan
     
-    # List the files in the data directory
+    # Group files by extension
     $files = Get-ChildItem -Path $DataDir -File
-    Write-Host "Found $($files.Count) files in data directory:" -ForegroundColor Cyan
-    foreach ($file in $files) {
-        Write-Host "  - $($file.Name)" -ForegroundColor Gray
+    $filesByExtension = $files | Group-Object -Property Extension
+    
+    # Display summary of files by extension
+    Write-Host "Found $($files.Count) files in data directory, organized by type:" -ForegroundColor Cyan
+    foreach ($group in $filesByExtension) {
+        Write-Host "  - $($group.Name) files: $($group.Count)" -ForegroundColor Gray
+        foreach ($file in $group.Group) {
+            Write-Host "      - $($file.Name)" -ForegroundColor DarkGray
+        }
     }
+    
+    # Check for files with same base name but different extensions
+    $baseNames = $files | ForEach-Object { $_.BaseName } | Group-Object
+    $duplicateBaseNames = $baseNames | Where-Object { $_.Count -gt 1 }
+    
+    if ($duplicateBaseNames.Count -gt 0) {
+        Write-Host "`nFiles with the same base name but different extensions:" -ForegroundColor Yellow
+        foreach ($duplicate in $duplicateBaseNames) {
+            $duplicateFiles = $files | Where-Object { $_.BaseName -eq $duplicate.Name }
+            Write-Host "  - Base name: $($duplicate.Name)" -ForegroundColor DarkYellow
+            foreach ($file in $duplicateFiles) {
+                Write-Host "      - $($file.Name)" -ForegroundColor DarkGray
+            }
+        }
+    }
+    
     Write-Host ""
 } else {
     Write-Host "WARNING: Data directory '$DataDir' not found. Ingestion tests might fail." -ForegroundColor Yellow
@@ -111,6 +151,55 @@ function Test-Ingest {
     return Run-Test -Name "Document Ingestion" -Command "pipenv run python -m research_agent --log-level $LogLevel cli ingest --data-dir `"$DataDir`" --collection `"$Collection`""
 }
 
+# Run the document ingestion test with specific file types
+function Test-IngestByType {
+    param (
+        [string]$FileType,
+        [string]$CollectionSuffix = ""
+    )
+    
+    $typedCollection = if ($CollectionSuffix) { "${Collection}_${CollectionSuffix}" } else { $Collection }
+    
+    # Create a temporary directory for filtered files
+    $tempDir = Join-Path -Path $PWD -ChildPath "temp_${FileType}_files"
+    
+    try {
+        # Create temp directory if it doesn't exist
+        if (-not (Test-Path -Path $tempDir)) {
+            New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
+            Write-Host "Created temporary directory: $tempDir" -ForegroundColor Cyan
+        } else {
+            # Clean the directory
+            Remove-Item -Path "$tempDir\*" -Force -Recurse -ErrorAction SilentlyContinue
+        }
+        
+        # Copy only files of the specified type to the temp directory
+        $matchPattern = "*.$FileType"
+        $sourceFiles = Get-ChildItem -Path $DataDir -Filter $matchPattern
+        
+        foreach ($file in $sourceFiles) {
+            Copy-Item -Path $file.FullName -Destination $tempDir
+            Write-Host "Copied $($file.Name) to temporary directory" -ForegroundColor Gray
+        }
+        
+        Write-Host "Filtered $($sourceFiles.Count) $FileType files to temporary directory" -ForegroundColor Cyan
+        
+        # Run the ingestion with the filtered directory
+        return Run-Test -Name "Ingestion of $FileType files" -Command "pipenv run python -m research_agent --log-level $LogLevel cli ingest --data-dir `"$tempDir`" --collection `"$typedCollection`""
+    }
+    finally {
+        # Clean up temporary directory
+        if ($DebugMode -eq $false) {
+            if (Test-Path -Path $tempDir) {
+                Remove-Item -Path $tempDir -Force -Recurse -ErrorAction SilentlyContinue
+                Write-Host "Removed temporary directory: $tempDir" -ForegroundColor Gray
+            }
+        } else {
+            Write-Host "Debug mode: Keeping temporary directory: $tempDir" -ForegroundColor Yellow
+        }
+    }
+}
+
 # Run the end-to-end Gemini test
 function Test-E2EGemini {
     return Run-Test -Name "End-to-End Gemini Test" -Command "pipenv run python -m research_agent --log-level $LogLevel cli gemini --prompt `"Summarize what you know about the documents I just added to collection $Collection.`""
@@ -118,15 +207,56 @@ function Test-E2EGemini {
 
 # RAG Tests
 function Test-RAGSimple {
-    return Run-Test -Name "RAG Simple Query" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"test`" --collection `"$Collection`""
+    param (
+        [string]$CustomCollection = $Collection
+    )
+    return Run-Test -Name "RAG Simple Query" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"test`" --collection `"$CustomCollection`""
 }
 
 function Test-RAGSummary {
-    return Run-Test -Name "RAG Document Summary" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"Please summarize the contents of the documents.`" --collection `"$Collection`""
+    param (
+        [string]$CustomCollection = $Collection
+    )
+    return Run-Test -Name "RAG Document Summary" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"Please summarize the contents of the documents.`" --collection `"$CustomCollection`""
 }
 
 function Test-RAGSpecific {
-    return Run-Test -Name "RAG Specific Query" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"What information does the document contain about ChromaDB?`" --collection `"$Collection`""
+    param (
+        [string]$CustomCollection = $Collection,
+        [string]$Query = "What information does the document contain about ChromaDB?"
+    )
+    return Run-Test -Name "RAG Specific Query" -Command "pipenv run python -m research_agent --log-level $LogLevel cli rag --query `"$Query`" --collection `"$CustomCollection`""
+}
+
+# Mexican food specific RAG tests
+function Test-MexicanFoodRAG {
+    param (
+        [string]$CustomCollection = $Collection
+    )
+    
+    $success = $true
+    
+    # Query about traditional Mexican dishes
+    $success = Test-RAGSpecific -CustomCollection $CustomCollection -Query "What are some traditional Mexican dishes mentioned in the documents?" -and $success
+    
+    # Query about Mexican beverages
+    $success = Test-RAGSpecific -CustomCollection $CustomCollection -Query "Tell me about traditional Mexican beverages and their ingredients." -and $success
+    
+    # Query about Mexican street food
+    $success = Test-RAGSpecific -CustomCollection $CustomCollection -Query "What street foods are popular in Mexico according to the documents?" -and $success
+    
+    return $success
+}
+
+# Docling Test with error handling for graph visualization
+function Test-Docling {
+    # Create a workaround command that avoids graph visualization
+    $command = "pipenv run python -m research_agent --log-level $LogLevel cli ingest --data-dir `"$DataDir`" --collection `"docling_test_collection`" --use-docling"
+    
+    # Run the Docling test with our custom command
+    $cliSuccess = Run-Test -Name "Docling CLI Integration" -Command $command
+    
+    return $cliSuccess
 }
 
 # Debugging tests
@@ -135,7 +265,38 @@ function Test-DebugModel {
 }
 
 function Test-DebugChroma {
-    return Run-Test -Name "Debug ChromaDB Collections" -Command "pipenv run python -c `"import chromadb; client = chromadb.PersistentClient('./chroma_db'); print('Collections:', client.list_collections()); collection = client.get_collection('$Collection'); print('Document count:', collection.count()); print('Sample documents:', collection.get(limit=2))`""
+    param (
+        [string]$CustomCollection = $Collection
+    )
+    return Run-Test -Name "Debug ChromaDB Collections" -Command "pipenv run python -c `"import chromadb; client = chromadb.PersistentClient('./chroma_db'); print('Collections:', client.list_collections()); collection = client.get_collection('$CustomCollection'); print('Document count:', collection.count()); print('Sample documents:', collection.get(limit=2))`""
+}
+
+# Test file type specific collections
+function Test-FileTypeCollections {
+    $success = $true
+    
+    # Ingest HTML files to html_collection
+    $htmlIngestSuccess = Test-IngestByType -FileType "html" -CollectionSuffix "html"
+    $success = $htmlIngestSuccess -and $success
+    
+    # Ingest TXT files to txt_collection
+    $txtIngestSuccess = Test-IngestByType -FileType "txt" -CollectionSuffix "txt"
+    $success = $txtIngestSuccess -and $success
+    
+    # If both ingestions succeeded, test queries against each collection
+    if ($htmlIngestSuccess -and $txtIngestSuccess) {
+        # Test HTML collection with Mexican food queries
+        Write-Host "Testing HTML Collection with Mexican Food Queries:" -ForegroundColor Cyan
+        $success = Test-MexicanFoodRAG -CustomCollection "${Collection}_html" -and $success
+        
+        # Test TXT collection with technical queries
+        Write-Host "Testing TXT Collection with Tech Queries:" -ForegroundColor Cyan
+        $success = Test-RAGSpecific -CustomCollection "${Collection}_txt" -Query "What is discussed about machine learning in the documents?" -and $success
+    } else {
+        Write-Host "Skipping collection-specific tests as ingestion failed" -ForegroundColor Yellow
+    }
+    
+    return $success
 }
 
 # Function to run all tests
@@ -155,8 +316,17 @@ function Test-All {
         $success = Test-RAGSimple -and $success
         $success = Test-RAGSummary -and $success
         $success = Test-RAGSpecific -and $success
+        
+        # Run special file type tests
+        $success = Test-FileTypeCollections -and $success
+        
+        # Run Mexican food specific tests
+        $success = Test-MexicanFoodRAG -and $success
+        
+        # Run Docling test
+        $success = Test-Docling -and $success
     } else {
-        Write-Host "Skipping RAG and E2E tests as document ingestion failed" -ForegroundColor Yellow
+        Write-Host "Skipping RAG, E2E, and Docling tests as document ingestion failed" -ForegroundColor Yellow
     }
     
     return $success
@@ -175,6 +345,7 @@ function Test-RAG {
         $success = Test-RAGSimple -and $success
         $success = Test-RAGSummary -and $success
         $success = Test-RAGSpecific -and $success
+        $success = Test-MexicanFoodRAG -and $success
     } else {
         Write-Host "Skipping RAG tests as document ingestion failed" -ForegroundColor Yellow
     }
@@ -196,17 +367,22 @@ switch ($TestName.ToLower()) {
     "help" { $success = Test-Help }
     "gemini" { $success = Test-Gemini }
     "ingest" { $success = Test-Ingest }
+    "ingest_html" { $success = Test-IngestByType -FileType "html" -CollectionSuffix "html" }
+    "ingest_txt" { $success = Test-IngestByType -FileType "txt" -CollectionSuffix "txt" }
     "e2e_gemini" { $success = Test-E2EGemini }
     "rag_simple" { $success = Test-RAGSimple }
     "rag_summary" { $success = Test-RAGSummary }
     "rag_specific" { $success = Test-RAGSpecific }
+    "mexican" { $success = Test-MexicanFoodRAG }
+    "docling" { $success = Test-Docling }
     "debug_model" { $success = Test-DebugModel }
     "debug_chroma" { $success = Test-DebugChroma }
     "debug" { $success = Test-Debug }
     "rag" { $success = Test-RAG }
+    "file_types" { $success = Test-FileTypeCollections }
     default {
         Write-Host "Unknown test: $TestName" -ForegroundColor Red
-        Write-Host "Available tests: all, help, gemini, ingest, e2e_gemini, rag_simple, rag_summary, rag_specific, debug_model, debug_chroma, debug, rag" -ForegroundColor Yellow
+        Write-Host "Available tests: all, help, gemini, ingest, ingest_html, ingest_txt, e2e_gemini, rag_simple, rag_summary, rag_specific, mexican, docling, debug_model, debug_chroma, debug, rag, file_types" -ForegroundColor Yellow
         $success = $false
     }
 }

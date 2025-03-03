@@ -15,6 +15,7 @@ class DocumentState:
     State class for storing documents and their metadata for ChromaDB ingestion.
 
     Attributes:
+        file_paths: List of file paths to be processed by Docling.
         documents: List of document content strings to be ingested.
         document_ids: Optional list of IDs for the documents (will be auto-generated if not provided).
         metadata: Optional list of metadata dictionaries for the documents.
@@ -25,6 +26,7 @@ class DocumentState:
         total_time: Total time taken for the graph execution.
     """
 
+    file_paths: List[str] = field(default_factory=list)
     documents: List[str] = field(default_factory=list)
     document_ids: Optional[List[str]] = None
     metadata: Optional[List[Dict[str, Any]]] = None
@@ -38,6 +40,7 @@ class DocumentState:
         """Provide a nice string representation of the state."""
         return (
             f"DocumentState("
+            f"file_paths=[{len(self.file_paths)} files], "
             f"documents=[{len(self.documents)} docs], "
             f"collection='{self.chroma_collection_name}', "
             f"total_time={self.total_time:.3f}s)"

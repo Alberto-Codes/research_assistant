@@ -42,19 +42,31 @@ class DoclingProcessor:
         This is separated to allow for better error handling and testing.
         """
         try:
-            from docling.document_converter import DocumentConverter
-            from docling.options import PipelineOptions
+            # Try to import Docling modules
+            from docling.document_converter import DocumentConverter, FormatOption
+            from docling.datamodel.pipeline_options import PdfPipelineOptions
+            from docling.datamodel.base_models import InputFormat
             
             self.DocumentConverter = DocumentConverter
-            self.PipelineOptions = PipelineOptions
+            self.PdfPipelineOptions = PdfPipelineOptions
+            self.InputFormat = InputFormat
+            self.FormatOption = FormatOption
+            
+            logger.info("Using Docling API")
+            
+            # Initialize with default options - keeping it simple
+            # Initialize converter - by default it should handle all formats
             self.converter = DocumentConverter()
+            
             self.docling_available = True
             logger.info("Docling successfully initialized")
         except ImportError as e:
             self.docling_available = False
             logger.warning(f"Docling not available: {e}. Some document processing features will be limited.")
             self.DocumentConverter = None
-            self.PipelineOptions = None
+            self.PdfPipelineOptions = None
+            self.InputFormat = None
+            self.FormatOption = None
             self.converter = None
         
     def process_file(self, file_path: str):
@@ -79,17 +91,42 @@ class DoclingProcessor:
             raise ValueError(f"File not found: {file_path}")
         
         try:
-            # Create pipeline options from our configuration
-            pipeline_options = self.PipelineOptions(
-                ocr_language=self.options.language,
-                extract_tables=self.options.extract_tables,
-                extract_images=self.options.extract_images,
-            )
-            
             logger.info(f"Processing file: {file_path}")
-            result = self.converter.convert(str(file_path), pipeline_options=pipeline_options)
-            logger.info(f"Successfully processed file: {file_path}")
-            return result.document
+            
+            # Handle different file types
+            file_ext = file_path.suffix.lower()
+            
+            # For text files, which Docling doesn't support directly, read them ourselves
+            if file_ext == '.txt':
+                logger.info(f"Processing text file directly: {file_path}")
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text_content = f.read()
+                
+                # Create a simple mock document structure
+                from docling.datamodel.document import DoclingDocument, DocumentPart, DocumentPartType
+                
+                # Create a document with the text content
+                document = DoclingDocument(
+                    document_name=file_path.name,
+                    document_type="text"
+                )
+                
+                # Add the text content as a part
+                document.add_part(
+                    DocumentPart(
+                        content=text_content,
+                        type=DocumentPartType.TEXT,
+                        metadata={"source": str(file_path)}
+                    )
+                )
+                
+                return document
+            else:
+                # For other supported formats, use Docling's converter
+                result = self.converter.convert(str(file_path))
+                logger.info(f"Successfully processed file with Docling: {file_path}")
+                return result.document
+                
         except Exception as e:
             logger.error(f"Error processing file {file_path}: {e}")
             raise

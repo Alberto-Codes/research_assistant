@@ -14,6 +14,9 @@ import chromadb
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
+# Import DoclingProcessor
+from research_agent.core.document_processing.docling_processor import DoclingProcessor, DoclingProcessorOptions
+
 # Module-specific logger
 logger = logging.getLogger(__name__)
 
@@ -299,3 +302,30 @@ class ChromaDBDependencies:
         """
         if self.chroma_client is None:
             self.chroma_client = DefaultChromaDBClient(persist_directory=self.persist_directory)
+
+
+@dataclass
+class DoclingDependencies:
+    """Dependencies for Docling document processing.
+    
+    This class provides the necessary dependencies for processing documents
+    using the Docling library.
+    """
+    
+    docling_processor: DoclingProcessor
+    
+    @classmethod
+    def create(
+        cls,
+        docling_options: Optional[DoclingProcessorOptions] = None,
+    ) -> "DoclingDependencies":
+        """Create a DoclingDependencies instance with a configured processor.
+        
+        Args:
+            docling_options: Optional configuration for the Docling processor.
+            
+        Returns:
+            A DoclingDependencies instance.
+        """
+        processor = DoclingProcessor(options=docling_options)
+        return cls(docling_processor=processor)
